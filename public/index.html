@@ -34,10 +34,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 60px; }
 .page-layout { display: flex; align-items: flex-start; min-height: calc(100vh - 78px); }
 .page-content { flex: 1; min-width: 0; padding: 40px 32px 60px; }
 
-/* Chat toggle button */
-.chat-toggle { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; background: linear-gradient(135deg, #1e40af, #3b82f6); border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 24px rgba(59,130,246,0.4); z-index: 201; transition: transform 0.2s, box-shadow 0.2s; }
-.chat-toggle:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(59,130,246,0.6); }
-.chat-toggle svg { width: 24px; height: 24px; color: #fff; }
+
 
 /* Banner carousel */
 .banner { position: relative; border-radius: 16px; overflow: hidden; margin-bottom: 48px; height: 280px; }
@@ -179,10 +176,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 60px; }
 
   </div><!-- end page-content -->
 
-  <!-- Live Support Button -->
-  <button class="chat-toggle" id="chatToggle" title="Live Support">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-  </button>
+
 </div><!-- end page-layout -->
 
 <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
