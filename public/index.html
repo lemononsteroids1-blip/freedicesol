@@ -62,6 +62,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 60px; }
 .game-tile.coming:hover { transform: none; box-shadow: none; }
 .game-tile-inner { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .game-tile-icon { font-size: 32px; }
+.game-tile-icon img { width: 52px; height: 52px; object-fit: contain; }
 .game-tile-name { font-size: 14px; font-weight: 800; letter-spacing: 0.5px; }
 .soon-badge { position: absolute; top: 8px; right: 8px; background: #2a2f3e; border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: 600; color: #8b949e; text-transform: uppercase; }
 
@@ -138,19 +139,19 @@ main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 60px; }
   <div class="games-grid">
     <a class="game-tile dice" href="/dice">
       <div class="game-tile-inner">
-        <div class="game-tile-icon">🎲</div>
+        <div class="game-tile-icon"><img src="/assets/dice.png" alt="Dice"></div>
         <div class="game-tile-name">Dice</div>
       </div>
     </a>
     <a class="game-tile bj" href="/blackjack">
       <div class="game-tile-inner">
-        <div class="game-tile-icon">🃏</div>
+        <div class="game-tile-icon"><img src="/assets/blackjack.png" alt="Blackjack"></div>
         <div class="game-tile-name">Blackjack</div>
       </div>
     </a>
     <a class="game-tile" href="/flip" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);">
       <div class="game-tile-inner">
-        <div class="game-tile-icon">🪙</div>
+        <div class="game-tile-icon"><img src="/assets/flip.png" alt="Flip"></div>
         <div class="game-tile-name">Flip</div>
       </div>
     </a>
