@@ -203,7 +203,7 @@ function renderBets(bets) {
       <span class="play-game">${b.game}</span>
       <span class="play-wallet">${b.wallet}</span>
       <span class="play-amount">${b.amount.toFixed(4)} SOL</span>
-      <span class="${b.won ? 'play-won' : 'play-lost'}">${b.won ? b.multiplier.toFixed(2) + 'x' : '0x'}</span>
+      <span style="color:#fff;font-weight:700;">${b.won ? b.multiplier.toFixed(2) + 'x' : '0x'}</span>
       <span class="play-time">${timeSince(b.ts)}</span>
     </div>`).join('');
 }
