@@ -34,43 +34,6 @@ main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 60px; }
 .page-layout { display: flex; align-items: flex-start; min-height: calc(100vh - 78px); }
 .page-content { flex: 1; min-width: 0; padding: 40px 32px 60px; }
 
-/* Chat popup */
-.chat-popup { position: fixed; bottom: 0; right: 0; width: 380px; background: #0d1117; border-radius: 20px 0 0 0; display: flex; flex-direction: column; height: 600px; box-shadow: -8px 0 48px rgba(0,0,0,0.8); border-top: 1px solid #21262d; border-left: 1px solid #21262d; z-index: 200; transform: translateY(110%); opacity: 0; pointer-events: none; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s; transform-origin: bottom right; }
-.chat-popup.open { transform: translateY(0); opacity: 1; pointer-events: all; }
-.chat-header { padding: 18px 20px 14px; border-bottom: 1px solid #21262d; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-.chat-header-left { display: flex; align-items: center; gap: 10px; }
-.chat-header-icon { width: 32px; height: 32px; background: linear-gradient(135deg, #1e40af, #7c3aed); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-.chat-header-icon svg { width: 16px; height: 16px; color: #fff; }
-.chat-header-title { font-size: 15px; font-weight: 800; color: #f0f6fc; letter-spacing: 0.3px; }
-.chat-online { font-size: 11px; font-weight: 600; color: #3fb950; display: flex; align-items: center; gap: 5px; }
-.chat-online::before { content: ''; width: 6px; height: 6px; background: #3fb950; border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-.chat-close { background: none; border: none; color: #6e7681; cursor: pointer; padding: 4px; border-radius: 6px; display: flex; transition: color 0.15s, background 0.15s; }
-.chat-close:hover { color: #f0f6fc; background: #21262d; }
-.chat-me { padding: 10px 20px; background: #161b22; border-bottom: 1px solid #21262d; font-size: 12px; color: #6e7681; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.chat-me-dot { width: 8px; height: 8px; background: #3fb950; border-radius: 50%; flex-shrink: 0; }
-.chat-me-addr { color: #58a6ff; font-weight: 700; font-size: 12px; font-family: monospace; }
-.chat-messages { flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 2px; scroll-behavior: smooth; }
-.chat-messages::-webkit-scrollbar { width: 4px; }
-.chat-messages::-webkit-scrollbar-track { background: transparent; }
-.chat-messages::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
-.chat-msg { display: flex; gap: 10px; padding: 8px 10px; border-radius: 10px; transition: background 0.1s; align-items: flex-start; }
-.chat-msg:hover { background: #161b22; }
-.chat-msg-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #1e40af, #7c3aed); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #fff; flex-shrink: 0; margin-top: 1px; font-family: monospace; }
-.chat-msg-body { flex: 1; min-width: 0; }
-.chat-msg-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px; }
-.chat-msg-name { font-weight: 700; color: #58a6ff; font-size: 13px; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
-.chat-msg-time { font-size: 10px; color: #484f58; flex-shrink: 0; }
-.chat-msg-text { color: #c9d1d9; font-size: 14px; line-height: 1.5; word-break: break-word; }
-.chat-input-row { padding: 14px 16px; border-top: 1px solid #21262d; display: flex; gap: 10px; align-items: center; flex-shrink: 0; background: #0d1117; border-radius: 0 0 0 20px; }
-.chat-input-wrap { flex: 1; position: relative; }
-.chat-input { width: 100%; background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 11px 16px; color: #f0f6fc; font-size: 14px; outline: none; font-family: inherit; transition: border-color 0.2s, box-shadow 0.2s; }
-.chat-input::placeholder { color: #484f58; }
-.chat-input:focus { border-color: #388bfd; box-shadow: 0 0 0 3px rgba(56,139,253,0.1); }
-.chat-send { background: linear-gradient(135deg, #1e40af, #3b82f6); border: none; border-radius: 12px; width: 44px; height: 44px; color: #fff; cursor: pointer; transition: opacity 0.2s, transform 0.15s; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.chat-send:hover { opacity: 0.85; transform: scale(1.05); }
-.chat-send svg { width: 18px; height: 18px; }
-
 /* Chat toggle button */
 .chat-toggle { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; background: linear-gradient(135deg, #1e40af, #3b82f6); border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 24px rgba(59,130,246,0.4); z-index: 201; transition: transform 0.2s, box-shadow 0.2s; }
 .chat-toggle:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(59,130,246,0.6); }
@@ -216,34 +179,8 @@ main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 60px; }
 
   </div><!-- end page-content -->
 
-  <!-- Chat Popup -->
-  <div class="chat-popup" id="chatPopup">
-    <div class="chat-header">
-      <div class="chat-header-left">
-        <div class="chat-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-        <span class="chat-header-title">Live Chat</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:12px;">
-        <span class="chat-online" id="onlineCount">0 online</span>
-        <button class="chat-close" onclick="document.getElementById('chatPopup').classList.remove('open')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
-    </div>
-    <div class="chat-me"><div class="chat-me-dot"></div>Chatting as <span class="chat-me-addr" id="chatMeAddr">Not connected</span></div>
-    <div class="chat-messages" id="chatMessages"></div>
-    <div class="chat-input-row">
-      <div class="chat-input-wrap">
-        <input class="chat-input" id="chatInput" placeholder="Type a message..." maxlength="200">
-      </div>
-      <button class="chat-send" id="chatSend">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-      </button>
-    </div>
-  </div>
-
-  <!-- Chat Toggle Button -->
-  <button class="chat-toggle" id="chatToggle">
+  <!-- Live Support Button -->
+  <button class="chat-toggle" id="chatToggle" title="Live Support">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
   </button>
 </div><!-- end page-layout -->
@@ -293,56 +230,11 @@ async function loadBets() {
 loadBets();
 setInterval(loadBets, 5000);
 
-// Live bets + Chat via WebSocket
-let chatWs;
-function connectChat() {
-  chatWs = new WebSocket(`ws://${location.host}`);
-  chatWs.onmessage = e => {
-    const d = JSON.parse(e.data);
-    if (d.type === 'bet') { loadBets(); }
-    if (d.type === 'users') document.getElementById('onlineCount').textContent = d.count + ' online';
-    if (d.type === 'chat') appendMsg(d);
-    if (d.type === 'history') d.messages.forEach(appendMsg);
-  };
-  chatWs.onopen = () => {
-    const addr = typeof FreeDiceSolana !== 'undefined' && FreeDiceSolana.isConnected() ? FreeDiceSolana.getPublicKey() : null;
-    const display = addr ? addr.slice(0,6) + '...' + addr.slice(-4) : null;
-    if (display) document.getElementById('chatMeAddr').textContent = display;
-    chatWs.send(JSON.stringify({ type: 'identify', wallet: addr }));
-  };
-  chatWs.onclose = () => setTimeout(connectChat, 2000);
-}
-function appendMsg(msg) {
-  const box = document.getElementById('chatMessages');
-  const el = document.createElement('div');
-  el.className = 'chat-msg';
-  const initials = msg.name.slice(0,2).toUpperCase();
-  const time = new Date(msg.ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  el.innerHTML = `
-    <div class="chat-msg-avatar">${initials}</div>
-    <div class="chat-msg-body">
-      <div class="chat-msg-header">
-        <span class="chat-msg-name">${msg.name}</span>
-        <span class="chat-msg-time">${time}</span>
-      </div>
-      <div class="chat-msg-text">${msg.text.replace(/</g,'&lt;')}</div>
-    </div>`;
-  box.appendChild(el);
-  box.scrollTop = box.scrollHeight;
-}
-function sendChat() {
-  const input = document.getElementById('chatInput');
-  const text = input.value.trim();
-  if (!text || !chatWs || chatWs.readyState !== 1) return;
-  chatWs.send(JSON.stringify({ type: 'chat', text }));
-  input.value = '';
-}
-document.getElementById('chatSend').addEventListener('click', sendChat);
-document.getElementById('chatInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
-document.getElementById('chatToggle').addEventListener('click', () => {
-  document.getElementById('chatPopup').classList.toggle('open');
-});
-try { connectChat(); } catch(_) {}
+// Live bets via WebSocket
+try {
+  const ws = new WebSocket(`ws://${location.host}`);
+  ws.onmessage = e => { const d = JSON.parse(e.data); if (d.type === 'bet') loadBets(); };
+} catch(_) {}
 
 // Wallet
 window.addEventListener('load', async () => {
