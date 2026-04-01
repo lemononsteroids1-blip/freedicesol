@@ -31,31 +31,38 @@ body { font-family: "Inter", sans-serif; background: #0a0e13; color: #fff; min-h
 main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 60px; }
 
 /* Banner carousel */
-.banner { position: relative; border-radius: 16px; overflow: hidden; margin-bottom: 48px; height: 280px; background: #1a1f2e; }
+.banner { position: relative; border-radius: 16px; overflow: hidden; margin-bottom: 48px; height: 280px; }
 .banner-slide { display: none; width: 100%; height: 100%; position: absolute; inset: 0; }
 .banner-slide.active { display: block; }
-.banner-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
-.banner-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 60%, transparent 100%); display: flex; align-items: center; padding: 0 48px; }
+.banner-slide.dice-banner  { background: linear-gradient(135deg, #7f1d1d, #ef4444); }
+.banner-slide.bj-banner    { background: linear-gradient(135deg, #14532d, #22c55e); }
+.banner-slide.flip-banner  { background: linear-gradient(135deg, #6d28d9, #a78bfa); }
+.banner-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 48px; padding: 0 48px; }
+.banner-logo { height: 160px; width: 160px; object-fit: contain; flex-shrink: 0; }
 .banner-content { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
-.banner-title { font-size: 32px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 2px 8px rgba(0,0,0,0.6); }
-.banner-btn { background: #1e40af; border: none; border-radius: 8px; padding: 12px 32px; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; text-decoration: none; transition: background 0.2s; }
-.banner-btn:hover { background: #1d4ed8; }
-.banner-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.1); border: none; color: #fff; font-size: 22px; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; z-index: 10; }
-.banner-arrow:hover { background: rgba(255,255,255,0.2); }
+.banner-tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; opacity: 0.7; }
+.banner-title { font-size: 32px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.banner-btn { background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.5); border-radius: 8px; padding: 12px 32px; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; text-decoration: none; transition: all 0.2s; backdrop-filter: blur(4px); }
+.banner-btn:hover { background: rgba(255,255,255,0.35); }
+.banner-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.2); border: none; color: #fff; font-size: 22px; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; z-index: 10; }
+.banner-arrow:hover { background: rgba(0,0,0,0.4); }
 .banner-arrow.prev { left: 16px; }
 .banner-arrow.next { right: 16px; }
 .banner-dots { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; }
-.banner-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.3); cursor: pointer; transition: background 0.2s; }
+.banner-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.4); cursor: pointer; transition: background 0.2s; }
 .banner-dot.active { background: #fff; }
 
 /* Section title */
-.section-title { font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-bottom: 20px; color: #fff; }
+.section-title { font-size: 26px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-bottom: 20px; color: #fff; }
 
 /* Games grid */
 .games-grid { display: flex; justify-content: center; gap: 12px; margin-bottom: 48px; flex-wrap: wrap; }
-.game-tile { width: 200px; height: 160px; flex-shrink: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; text-decoration: none; color: #fff; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; position: relative; overflow: hidden; background: #1a1f2e; }
-.game-tile:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
-.game-tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.game-tile { width: 280px; height: 200px; flex-shrink: 0; border-radius: 16px; display: flex; align-items: center; justify-content: center; text-decoration: none; color: #fff; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; position: relative; overflow: hidden; }
+.game-tile:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.5); }
+.game-tile.dice-tile { background: linear-gradient(135deg, #7f1d1d, #ef4444); }
+.game-tile.bj-tile   { background: linear-gradient(135deg, #14532d, #22c55e); }
+.game-tile.flip-tile { background: linear-gradient(135deg, #6d28d9, #a78bfa); }
+.game-tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center; padding: 16px; }
 
 /* Recent plays */
 .plays-list { display: flex; flex-direction: column; gap: 8px; }
@@ -107,29 +114,32 @@ main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 60px; }
 
   <!-- Banner -->
   <div class="banner">
-    <div class="banner-slide active">
-      <img class="banner-bg" src="/assets/dice.png" alt="Dice">
+    <div class="banner-slide dice-banner active">
       <div class="banner-overlay">
+        <img class="banner-logo" src="/assets/dice.png" alt="Dice">
         <div class="banner-content">
-          <div class="banner-title">Play Dice — Up to 98x</div>
+          <div class="banner-tag">FreeDice Original</div>
+          <div class="banner-title">Play Dice &mdash; Up to 98x</div>
           <a class="banner-btn" href="/dice">Play Now</a>
         </div>
       </div>
     </div>
-    <div class="banner-slide">
-      <img class="banner-bg" src="/assets/blackjack.png" alt="Blackjack">
+    <div class="banner-slide bj-banner">
       <div class="banner-overlay">
+        <img class="banner-logo" src="/assets/blackjack.png" alt="Blackjack">
         <div class="banner-content">
+          <div class="banner-tag">FreeDice Original</div>
           <div class="banner-title">New Game: Blackjack</div>
           <a class="banner-btn" href="/blackjack">Play Now</a>
         </div>
       </div>
     </div>
-    <div class="banner-slide">
-      <img class="banner-bg" src="/assets/flip.png" alt="Flip">
+    <div class="banner-slide flip-banner">
       <div class="banner-overlay">
+        <img class="banner-logo" src="/assets/flip.png" alt="Flip">
         <div class="banner-content">
-          <div class="banner-title">Coin Flip — 2x Your SOL</div>
+          <div class="banner-tag">FreeDice Original</div>
+          <div class="banner-title">Coin Flip &mdash; 2x Your SOL</div>
           <a class="banner-btn" href="/flip">Play Now</a>
         </div>
       </div>
@@ -146,9 +156,15 @@ main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 60px; }
   <!-- Games -->
   <div class="section-title">FreeDice Originals</div>
   <div class="games-grid">
-    <a class="game-tile" href="/dice"><img src="/assets/dice.png" alt="Dice"></a>
-    <a class="game-tile" href="/blackjack"><img src="/assets/blackjack.png" alt="Blackjack"></a>
-    <a class="game-tile" href="/flip"><img src="/assets/flip.png" alt="Flip"></a>
+    <a class="game-tile dice-tile" href="/dice"><img src="/assets/dice.png" alt="Dice"></a>
+    <a class="game-tile bj-tile" href="/blackjack"><img src="/assets/blackjack.png" alt="Blackjack"></a>
+    <a class="game-tile flip-tile" href="/flip"><img src="/assets/flip.png" alt="Flip"></a>
+  </div>
+
+  <!-- Recent Bets -->
+  <div class="section-title">Recent Bets</div>
+  <div class="plays-list" id="betsFeed">
+    <div class="play-row" style="justify-content:center;color:#8b949e;">No bets yet</div>
   </div>
 
 
@@ -171,6 +187,44 @@ function goSlide(n) {
 }
 function slideBanner(dir) { goSlide(slide + dir); }
 setInterval(() => slideBanner(1), 5000);
+
+// Recent Bets
+function timeSince(ts) {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return s + 's ago';
+  if (s < 3600) return Math.floor(s/60) + 'm ago';
+  return Math.floor(s/3600) + 'h ago';
+}
+function renderBets(bets) {
+  const feed = document.getElementById('betsFeed');
+  if (!bets.length) return;
+  feed.innerHTML = bets.map(b => `
+    <div class="play-row">
+      <span class="play-game">${b.game}</span>
+      <span class="play-wallet">${b.wallet}</span>
+      <span class="${b.won ? 'play-won' : 'play-lost'}">${b.won ? 'WON' : 'LOST'}</span>
+      <span class="play-amount">${b.amount.toFixed(4)} SOL</span>
+      ${b.won ? `<span class="play-amount" style="color:#48bb78">${b.multiplier}x</span>` : ''}
+      <span class="play-time">${timeSince(b.ts)}</span>
+    </div>`).join('');
+}
+async function loadBets() {
+  try {
+    const r = await fetch('/api/bets');
+    renderBets(await r.json());
+  } catch(_) {}
+}
+loadBets();
+setInterval(loadBets, 5000);
+
+// Live bets via WebSocket
+try {
+  const ws = new WebSocket(`ws://${location.host}`);
+  ws.onmessage = e => {
+    const d = JSON.parse(e.data);
+    if (d.type === 'bet') loadBets();
+  };
+} catch(_) {}
 
 // Wallet
 window.addEventListener('load', async () => {
