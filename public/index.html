@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>FreeDice — Solana Casino</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: "Inter", sans-serif; background: #0a0e13; color: #fff; min-height: 100vh; }
+
+.header { padding: 16px 24px; background: #1a1f2e; display: flex; justify-content: space-between; align-items: center; height: 80px; border-bottom: 1px solid #2a2f3e; }
+.logo-link { display: inline-flex; align-items: center; text-decoration: none; }
+.logo-img { height: 72px; width: auto; display: block; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.balance-display { background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 12px 20px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; color: #fff; height: 48px; }
+.connect-btn { background: #1e40af; border: none; border-radius: 8px; padding: 12px 24px; color: #fff; font-weight: 600; cursor: pointer; font-size: 15px; height: 48px; transition: background 0.2s; }
+.connect-btn:hover { background: #1d4ed8; }
+
+main { max-width: 900px; margin: 0 auto; padding: 60px 24px; }
+
+.hero { text-align: center; margin-bottom: 56px; }
+.hero h1 { font-size: clamp(36px, 5vw, 56px); font-weight: 800; margin-bottom: 14px; letter-spacing: -0.5px; }
+.hero p { color: #8b949e; font-size: 16px; line-height: 1.7; max-width: 440px; margin: 0 auto 32px; }
+.hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn-primary { background: #1e40af; border: none; border-radius: 8px; padding: 14px 32px; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-secondary { background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 14px 32px; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; }
+.btn-secondary:hover { background: #3a3f4e; }
+
+.games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.game-card { background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; transition: all 0.2s; display: flex; flex-direction: column; }
+.game-card:hover { border-color: #3a3f4e; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+.game-thumb { height: 140px; display: flex; align-items: center; justify-content: center; font-size: 60px; }
+.game-thumb.dice { background: #0d1520; }
+.game-thumb.bj   { background: #0a1a10; }
+.game-body { padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.game-name { font-size: 18px; font-weight: 800; }
+.game-desc { font-size: 13px; color: #8b949e; line-height: 1.5; flex: 1; }
+.game-play { display: block; background: #1e40af; color: #fff; font-weight: 700; font-size: 14px; text-align: center; padding: 14px; text-decoration: none; transition: background 0.2s; }
+.game-play:hover { background: #1d4ed8; }
+
+.features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 48px; }
+.feature { background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 10px; padding: 20px; }
+.feature-icon { font-size: 22px; margin-bottom: 10px; }
+.feature h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.feature p { font-size: 12px; color: #8b949e; line-height: 1.5; }
+
+footer { border-top: 1px solid #2a2f3e; padding: 24px; text-align: center; color: #8b949e; font-size: 13px; margin-top: 80px; }
+
+.toast { position: fixed; top: 92px; right: 20px; background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 8px; padding: 12px 16px; color: #fff; font-size: 14px; font-weight: 500; z-index: 1000; animation: slideIn 0.3s ease-out; }
+.toast.success { border-color: #48bb78; background: rgba(72,187,120,0.08); }
+@keyframes slideIn { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+@media(max-width:600px) { .games-grid { grid-template-columns: 1fr; } .features { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a class="logo-link" href="/">
+    <img class="logo-img" src="/assets/Free Dice.png" alt="FreeDice">
+  </a>
+  <div class="header-right">
+    <div class="balance-display"><img src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png" style="width:18px;height:18px;border-radius:50%;flex-shrink:0;"><span id="balDisplay">0.0000 SOL</span></div>
+    <button class="connect-btn" id="connectBtn">Connect Wallet</button>
+  </div>
+</header>
+
+<main>
+  <div class="hero">
+    <h1>Solana Casino</h1>
+    <p>On-chain games powered by Solana. Connect your wallet and start playing instantly.</p>
+    <div class="hero-btns">
+      <a class="btn-primary" href="/dice">🎲 Play Dice</a>
+      <a class="btn-secondary" href="/blackjack">🃏 Play Blackjack</a>
+    </div>
+  </div>
+
+  <div class="games-grid">
+    <a class="game-card" href="/dice">
+      <div class="game-thumb dice">🎲</div>
+      <div class="game-body">
+        <div class="game-name">Dice</div>
+        <div class="game-desc">Roll over or under your target. Adjust your win chance and multiplier freely.</div>
+      </div>
+      <span class="game-play">Play Dice</span>
+    </a>
+    <a class="game-card" href="/blackjack">
+      <div class="game-thumb bj">🃏</div>
+      <div class="game-body">
+        <div class="game-name">Blackjack</div>
+        <div class="game-desc">Beat the dealer to 21. Hit, Stand, Double Down, or Split pairs.</div>
+      </div>
+      <span class="game-play">Play Blackjack</span>
+    </a>
+  </div>
+
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">⛓️</div>
+      <h3>On-Chain</h3>
+      <p>Every bet is recorded on Solana. Fully transparent and verifiable.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">⚡</div>
+      <h3>Instant</h3>
+      <p>Sub-second Solana finality. Results confirmed in under a second.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">👛</div>
+      <h3>Any Wallet</h3>
+      <p>Phantom, Solflare, Backpack, Glow, Coinbase and more.</p>
+    </div>
+  </div>
+</main>
+
+<footer>FreeDice Casino · Solana Devnet · For entertainment purposes only</footer>
+
+<script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+<script src="/js/solana.js"></script>
+<script>
+window.addEventListener('load', async () => {
+  await FreeDiceSolana.initSolana();
+  const btn = document.getElementById('connectBtn');
+  const bal = document.getElementById('balDisplay');
+  if (FreeDiceSolana.isConnected()) {
+    const addr = FreeDiceSolana.getPublicKey();
+    btn.textContent = addr.slice(0,4) + '...' + addr.slice(-4);
+    const b = await FreeDiceSolana.getSolBalance();
+    bal.textContent = b.toFixed(4) + ' SOL';
+  }
+  btn.addEventListener('click', async () => {
+    if (FreeDiceSolana.isConnected()) return;
+    btn.textContent = 'Connecting...';
+    try {
+      await FreeDiceSolana.connectWallet();
+      const b = await FreeDiceSolana.getSolBalance();
+      bal.textContent = b.toFixed(4) + ' SOL';
+      const addr = FreeDiceSolana.getPublicKey();
+      btn.textContent = addr.slice(0,4) + '...' + addr.slice(-4);
+      const t = document.createElement('div'); t.className = 'toast success'; t.textContent = 'Wallet connected'; document.body.appendChild(t); setTimeout(() => t.remove(), 3000);
+    } catch(e) { btn.textContent = 'Connect Wallet'; }
+  });
+});
+</script>
+</body>
+</html>
