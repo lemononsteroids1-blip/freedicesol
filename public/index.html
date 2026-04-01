@@ -68,7 +68,7 @@ main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 60px; }
 .plays-list { display: flex; flex-direction: column; gap: 8px; }
 .play-row { background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 8px; padding: 12px 20px; display: flex; align-items: center; gap: 12px; font-size: 14px; }
 .play-game { background: #2a2f3e; border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 700; color: #8b949e; text-transform: uppercase; }
-.play-wallet { color: #3b82f6; font-weight: 600; }
+.play-wallet { color: #fff; font-weight: 600; }
 .play-won { color: #48bb78; font-weight: 700; }
 .play-lost { color: #f56565; font-weight: 700; }
 .play-amount { background: #2a2f3e; border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
@@ -204,7 +204,6 @@ function renderBets(bets) {
       <span class="play-wallet">${b.wallet}</span>
       <span class="${b.won ? 'play-won' : 'play-lost'}">${b.won ? 'WON' : 'LOST'}</span>
       <span class="play-amount">${b.amount.toFixed(4)} SOL</span>
-      ${b.won ? `<span class="play-amount" style="color:#48bb78">${b.multiplier}x</span>` : ''}
       <span class="play-time">${timeSince(b.ts)}</span>
     </div>`).join('');
 }
