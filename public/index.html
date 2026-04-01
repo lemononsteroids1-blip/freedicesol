@@ -32,12 +32,12 @@ main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 60px; }
 
 /* Banner carousel */
 .banner { position: relative; border-radius: 16px; overflow: hidden; margin-bottom: 48px; height: 280px; background: #1a1f2e; }
-.banner-slide { display: none; width: 100%; height: 100%; position: absolute; inset: 0; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
-.banner-slide.active { display: flex; }
-.banner-slide.dice-slide { background: radial-gradient(ellipse at center, #0d1a2e 0%, #0a0e13 100%); }
-.banner-slide.bj-slide { background: radial-gradient(ellipse at center, #0a1a10 0%, #0a0e13 100%); }
-.banner-emoji { font-size: 80px; margin-bottom: 16px; }
-.banner-title { font-size: 28px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+.banner-slide { display: none; width: 100%; height: 100%; position: absolute; inset: 0; }
+.banner-slide.active { display: block; }
+.banner-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.banner-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 60%, transparent 100%); display: flex; align-items: center; padding: 0 48px; }
+.banner-content { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.banner-title { font-size: 32px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 2px 8px rgba(0,0,0,0.6); }
 .banner-btn { background: #1e40af; border: none; border-radius: 8px; padding: 12px 32px; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; text-decoration: none; transition: background 0.2s; }
 .banner-btn:hover { background: #1d4ed8; }
 .banner-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.1); border: none; color: #fff; font-size: 22px; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; z-index: 10; }
@@ -53,17 +53,9 @@ main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 60px; }
 
 /* Games grid */
 .games-grid { display: flex; justify-content: center; gap: 12px; margin-bottom: 48px; flex-wrap: wrap; }
-.game-tile { width: 200px; flex-shrink: 0; }
-.game-tile { border-radius: 12px; height: 160px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #fff; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; position: relative; overflow: hidden; }
+.game-tile { width: 200px; height: 160px; flex-shrink: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; text-decoration: none; color: #fff; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; position: relative; overflow: hidden; background: #1a1f2e; }
 .game-tile:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
-.game-tile.dice    { background: linear-gradient(135deg, #1e40af, #3b82f6); }
-.game-tile.bj      { background: linear-gradient(135deg, #14532d, #22c55e); }
-.game-tile.coming  { background: #1a1f2e; border: 1px solid #2a2f3e; color: #4a5568; cursor: default; }
-.game-tile.coming:hover { transform: none; box-shadow: none; }
-.game-tile-inner { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.game-tile-icon { width: 100%; height: 100%; display: flex; }
-.game-tile-name { font-size: 14px; font-weight: 800; letter-spacing: 0.5px; }
-.soon-badge { position: absolute; top: 8px; right: 8px; background: #2a2f3e; border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: 600; color: #8b949e; text-transform: uppercase; }
+.game-tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
 
 /* Recent plays */
 .plays-list { display: flex; flex-direction: column; gap: 8px; }
@@ -115,37 +107,48 @@ main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 60px; }
 
   <!-- Banner -->
   <div class="banner">
-    <div class="banner-slide dice-slide active">
-      <div class="banner-emoji">🎲</div>
-      <div class="banner-title">Play Dice — Up to 98x</div>
-      <a class="banner-btn" href="/dice">Play Now</a>
+    <div class="banner-slide active">
+      <img class="banner-bg" src="/assets/dice.png" alt="Dice">
+      <div class="banner-overlay">
+        <div class="banner-content">
+          <div class="banner-title">Play Dice — Up to 98x</div>
+          <a class="banner-btn" href="/dice">Play Now</a>
+        </div>
+      </div>
     </div>
-    <div class="banner-slide bj-slide">
-      <div class="banner-emoji">🃏</div>
-      <div class="banner-title">New Game: Blackjack</div>
-      <a class="banner-btn" href="/blackjack">Play Now</a>
+    <div class="banner-slide">
+      <img class="banner-bg" src="/assets/blackjack.png" alt="Blackjack">
+      <div class="banner-overlay">
+        <div class="banner-content">
+          <div class="banner-title">New Game: Blackjack</div>
+          <a class="banner-btn" href="/blackjack">Play Now</a>
+        </div>
+      </div>
+    </div>
+    <div class="banner-slide">
+      <img class="banner-bg" src="/assets/flip.png" alt="Flip">
+      <div class="banner-overlay">
+        <div class="banner-content">
+          <div class="banner-title">Coin Flip — 2x Your SOL</div>
+          <a class="banner-btn" href="/flip">Play Now</a>
+        </div>
+      </div>
     </div>
     <button class="banner-arrow prev" onclick="slideBanner(-1)">&#8249;</button>
     <button class="banner-arrow next" onclick="slideBanner(1)">&#8250;</button>
     <div class="banner-dots">
       <div class="banner-dot active" onclick="goSlide(0)"></div>
       <div class="banner-dot" onclick="goSlide(1)"></div>
+      <div class="banner-dot" onclick="goSlide(2)"></div>
     </div>
   </div>
 
   <!-- Games -->
   <div class="section-title">FreeDice Originals</div>
   <div class="games-grid">
-    <a class="game-tile dice" href="/dice">
-      <div class="game-tile-icon"><img src="/assets/dice.png" alt="Dice"></div>
-    </a>
-    <a class="game-tile bj" href="/blackjack">
-      <div class="game-tile-icon"><img src="/assets/blackjack.png" alt="Blackjack"></div>
-    </a>
-    <a class="game-tile" href="/flip" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);">
-      <div class="game-tile-icon"><img src="/assets/flip.png" alt="Flip"></div>
-    </a>
-
+    <a class="game-tile" href="/dice"><img src="/assets/dice.png" alt="Dice"></a>
+    <a class="game-tile" href="/blackjack"><img src="/assets/blackjack.png" alt="Blackjack"></a>
+    <a class="game-tile" href="/flip"><img src="/assets/flip.png" alt="Flip"></a>
   </div>
 
 
