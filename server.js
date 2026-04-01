@@ -95,7 +95,7 @@ function broadcastUserCount() {
 }
 
 wss.on('connection', (ws) => {
-    chatClients.set(ws, { wallet: null, name: 'Anonymous' });
+    chatClients.set(ws, { wallet: null, name: 'Guest#' + Math.floor(Math.random() * 9000 + 1000) });
     broadcastUserCount();
 
     // Send history to new client
@@ -111,7 +111,7 @@ wss.on('connection', (ws) => {
                 client.wallet = data.wallet || null;
                 client.name = data.wallet
                     ? data.wallet.slice(0, 4) + '...' + data.wallet.slice(-4)
-                    : 'Anonymous';
+                    : 'Guest#' + Math.floor(Math.random() * 9000 + 1000);
                 broadcastUserCount();
                 return;
             }

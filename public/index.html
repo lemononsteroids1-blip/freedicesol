@@ -282,7 +282,8 @@ function connectChat() {
   };
   chatWs.onopen = () => {
     const addr = typeof FreeDiceSolana !== 'undefined' && FreeDiceSolana.isConnected() ? FreeDiceSolana.getPublicKey() : null;
-    if (addr) document.getElementById('chatMeAddr').textContent = addr.slice(0,4) + '...' + addr.slice(-4);
+    const name = addr ? addr.slice(0,4) + '...' + addr.slice(-4) : null;
+    if (addr) document.getElementById('chatMeAddr').textContent = name;
     chatWs.send(JSON.stringify({ type: 'identify', wallet: addr }));
   };
   chatWs.onclose = () => setTimeout(connectChat, 2000);
