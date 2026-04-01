@@ -3,123 +3,182 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>FreeDice — Solana Casino</title>
+<title>FreeDice Casino</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: "Inter", sans-serif; background: #0a0e13; color: #fff; min-height: 100vh; }
 
-.header { padding: 16px 24px; background: #1a1f2e; display: flex; justify-content: space-between; align-items: center; height: 80px; border-bottom: 1px solid #2a2f3e; }
+/* Header */
+.header { padding: 0 24px; background: #1a1f2e; display: flex; justify-content: space-between; align-items: center; height: 78px; border-bottom: 1px solid #2a2f3e; position: sticky; top: 0; z-index: 50; }
+.header-left { display: flex; align-items: center; }
 .logo-link { display: inline-flex; align-items: center; text-decoration: none; }
 .logo-img { height: 72px; width: auto; display: block; }
+.nav-tabs { display: flex; align-items: center; gap: 4px; margin-left: 24px; }
+.nav-tab { display: inline-flex; align-items: center; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #8b949e; text-decoration: none; border: none; background: none; cursor: pointer; transition: all 0.15s; position: relative; }
+.nav-tab:hover { background: #2a2f3e; color: #fff; }
+.nav-tab .dropdown { display: none; position: absolute; top: 100%; left: 0; padding-top: 8px; min-width: 160px; z-index: 100; }
+.nav-tab:hover .dropdown { display: flex; flex-direction: column; }
+.dropdown-inner { background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 10px; padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: flex; flex-direction: column; }
+.dropdown-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 7px; color: #cdd5e0; font-size: 14px; font-weight: 600; text-decoration: none; transition: background 0.15s; }
+.dropdown-item:hover { background: #2a2f3e; color: #fff; }
 .header-right { display: flex; align-items: center; gap: 12px; }
-.balance-display { background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 12px 20px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; color: #fff; height: 48px; }
-.connect-btn { background: #1e40af; border: none; border-radius: 8px; padding: 12px 24px; color: #fff; font-weight: 600; cursor: pointer; font-size: 15px; height: 48px; transition: background 0.2s; }
+.balance-display { background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 10px 18px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; color: #fff; height: 44px; }
+.connect-btn { background: #1e40af; border: none; border-radius: 8px; padding: 10px 22px; color: #fff; font-weight: 600; cursor: pointer; font-size: 15px; height: 44px; transition: background 0.2s; }
 .connect-btn:hover { background: #1d4ed8; }
 
-main { max-width: 900px; margin: 0 auto; padding: 60px 24px; }
+/* Main */
+main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 60px; }
 
-.hero { text-align: center; margin-bottom: 56px; }
-.hero h1 { font-size: clamp(36px, 5vw, 56px); font-weight: 800; margin-bottom: 14px; letter-spacing: -0.5px; }
-.hero p { color: #8b949e; font-size: 16px; line-height: 1.7; max-width: 440px; margin: 0 auto 32px; }
-.hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-.btn-primary { background: #1e40af; border: none; border-radius: 8px; padding: 14px 32px; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; }
-.btn-primary:hover { background: #1d4ed8; }
-.btn-secondary { background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 14px 32px; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: background 0.2s; }
-.btn-secondary:hover { background: #3a3f4e; }
+/* Banner carousel */
+.banner { position: relative; border-radius: 16px; overflow: hidden; margin-bottom: 48px; height: 280px; background: #1a1f2e; }
+.banner-slide { display: none; width: 100%; height: 100%; position: absolute; inset: 0; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
+.banner-slide.active { display: flex; }
+.banner-slide.dice-slide { background: radial-gradient(ellipse at center, #0d1a2e 0%, #0a0e13 100%); }
+.banner-slide.bj-slide { background: radial-gradient(ellipse at center, #0a1a10 0%, #0a0e13 100%); }
+.banner-emoji { font-size: 80px; margin-bottom: 16px; }
+.banner-title { font-size: 28px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+.banner-btn { background: #1e40af; border: none; border-radius: 8px; padding: 12px 32px; color: #fff; font-weight: 700; font-size: 15px; cursor: pointer; text-decoration: none; transition: background 0.2s; }
+.banner-btn:hover { background: #1d4ed8; }
+.banner-arrow { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.1); border: none; color: #fff; font-size: 22px; width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; z-index: 10; }
+.banner-arrow:hover { background: rgba(255,255,255,0.2); }
+.banner-arrow.prev { left: 16px; }
+.banner-arrow.next { right: 16px; }
+.banner-dots { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; }
+.banner-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.3); cursor: pointer; transition: background 0.2s; }
+.banner-dot.active { background: #fff; }
 
-.games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.game-card { background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; transition: all 0.2s; display: flex; flex-direction: column; }
-.game-card:hover { border-color: #3a3f4e; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
-.game-thumb { height: 140px; display: flex; align-items: center; justify-content: center; font-size: 60px; }
-.game-thumb.dice { background: #0d1520; }
-.game-thumb.bj   { background: #0a1a10; }
-.game-body { padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
-.game-name { font-size: 18px; font-weight: 800; }
-.game-desc { font-size: 13px; color: #8b949e; line-height: 1.5; flex: 1; }
-.game-play { display: block; background: #1e40af; color: #fff; font-weight: 700; font-size: 14px; text-align: center; padding: 14px; text-decoration: none; transition: background 0.2s; }
-.game-play:hover { background: #1d4ed8; }
+/* Section title */
+.section-title { font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-bottom: 20px; color: #fff; }
 
-.features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 48px; }
-.feature { background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 10px; padding: 20px; }
-.feature-icon { font-size: 22px; margin-bottom: 10px; }
-.feature h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
-.feature p { font-size: 12px; color: #8b949e; line-height: 1.5; }
+/* Games grid */
+.games-grid { display: flex; justify-content: center; gap: 12px; margin-bottom: 48px; flex-wrap: wrap; }
+.game-tile { width: 200px; flex-shrink: 0; }
+.game-tile { border-radius: 12px; height: 110px; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #fff; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; position: relative; overflow: hidden; }
+.game-tile:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+.game-tile.dice    { background: linear-gradient(135deg, #1e40af, #3b82f6); }
+.game-tile.bj      { background: linear-gradient(135deg, #14532d, #22c55e); }
+.game-tile.coming  { background: #1a1f2e; border: 1px solid #2a2f3e; color: #4a5568; cursor: default; }
+.game-tile.coming:hover { transform: none; box-shadow: none; }
+.game-tile-inner { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.game-tile-icon { font-size: 32px; }
+.game-tile-name { font-size: 14px; font-weight: 800; letter-spacing: 0.5px; }
+.soon-badge { position: absolute; top: 8px; right: 8px; background: #2a2f3e; border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: 600; color: #8b949e; text-transform: uppercase; }
 
-footer { border-top: 1px solid #2a2f3e; padding: 24px; text-align: center; color: #8b949e; font-size: 13px; margin-top: 80px; }
+/* Recent plays */
+.plays-list { display: flex; flex-direction: column; gap: 8px; }
+.play-row { background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 8px; padding: 12px 20px; display: flex; align-items: center; gap: 12px; font-size: 14px; }
+.play-game { background: #2a2f3e; border-radius: 4px; padding: 2px 8px; font-size: 11px; font-weight: 700; color: #8b949e; text-transform: uppercase; }
+.play-wallet { color: #3b82f6; font-weight: 600; }
+.play-won { color: #48bb78; font-weight: 700; }
+.play-lost { color: #f56565; font-weight: 700; }
+.play-amount { background: #2a2f3e; border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+.play-time { margin-left: auto; color: #8b949e; font-size: 12px; }
 
 .toast { position: fixed; top: 92px; right: 20px; background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 8px; padding: 12px 16px; color: #fff; font-size: 14px; font-weight: 500; z-index: 1000; animation: slideIn 0.3s ease-out; }
 .toast.success { border-color: #48bb78; background: rgba(72,187,120,0.08); }
 @keyframes slideIn { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-@media(max-width:600px) { .games-grid { grid-template-columns: 1fr; } .features { grid-template-columns: 1fr; } }
+@media(max-width:700px) { .games-grid { gap: 8px; } .game-tile { width: 150px; } .banner { height: 220px; } }
 </style>
 </head>
 <body>
 
 <header class="header">
-  <a class="logo-link" href="/">
-    <img class="logo-img" src="/assets/Free Dice.png" alt="FreeDice">
-  </a>
+  <div class="header-left">
+    <a class="logo-link" href="/"><img class="logo-img" src="/assets/Free Dice.png" alt="FreeDice"></a>
+    <nav class="nav-tabs">
+      <div class="nav-tab">
+        Originals
+        <div class="dropdown">
+          <div class="dropdown-inner">
+            <a class="dropdown-item" href="/blackjack">Blackjack</a>
+            <a class="dropdown-item" href="/dice">Dice</a>
+            <a class="dropdown-item" href="/flip">Flip</a>
+          </div>
+        </div>
+      </div>
+      <a class="nav-tab" href="/">Casino</a>
+      <a class="nav-tab" href="#">Sports</a>
+    </nav>
+  </div>
   <div class="header-right">
-    <div class="balance-display"><img src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png" style="width:18px;height:18px;border-radius:50%;flex-shrink:0;"><span id="balDisplay">0.0000 SOL</span></div>
+    <div class="balance-display">
+      <img src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png" style="width:18px;height:18px;border-radius:50%;flex-shrink:0;">
+      <span id="balDisplay">0.0000 SOL</span>
+    </div>
     <button class="connect-btn" id="connectBtn">Connect Wallet</button>
   </div>
 </header>
 
 <main>
-  <div class="hero">
-    <h1>Solana Casino</h1>
-    <p>On-chain games powered by Solana. Connect your wallet and start playing instantly.</p>
-    <div class="hero-btns">
-      <a class="btn-primary" href="/dice">🎲 Play Dice</a>
-      <a class="btn-secondary" href="/blackjack">🃏 Play Blackjack</a>
+
+  <!-- Banner -->
+  <div class="banner">
+    <div class="banner-slide dice-slide active">
+      <div class="banner-emoji">🎲</div>
+      <div class="banner-title">Play Dice — Up to 98x</div>
+      <a class="banner-btn" href="/dice">Play Now</a>
+    </div>
+    <div class="banner-slide bj-slide">
+      <div class="banner-emoji">🃏</div>
+      <div class="banner-title">New Game: Blackjack</div>
+      <a class="banner-btn" href="/blackjack">Play Now</a>
+    </div>
+    <button class="banner-arrow prev" onclick="slideBanner(-1)">&#8249;</button>
+    <button class="banner-arrow next" onclick="slideBanner(1)">&#8250;</button>
+    <div class="banner-dots">
+      <div class="banner-dot active" onclick="goSlide(0)"></div>
+      <div class="banner-dot" onclick="goSlide(1)"></div>
     </div>
   </div>
 
+  <!-- Games -->
+  <div class="section-title">FreeDice Originals</div>
   <div class="games-grid">
-    <a class="game-card" href="/dice">
-      <div class="game-thumb dice">🎲</div>
-      <div class="game-body">
-        <div class="game-name">Dice</div>
-        <div class="game-desc">Roll over or under your target. Adjust your win chance and multiplier freely.</div>
+    <a class="game-tile dice" href="/dice">
+      <div class="game-tile-inner">
+        <div class="game-tile-icon">🎲</div>
+        <div class="game-tile-name">Dice</div>
       </div>
-      <span class="game-play">Play Dice</span>
     </a>
-    <a class="game-card" href="/blackjack">
-      <div class="game-thumb bj">🃏</div>
-      <div class="game-body">
-        <div class="game-name">Blackjack</div>
-        <div class="game-desc">Beat the dealer to 21. Hit, Stand, Double Down, or Split pairs.</div>
+    <a class="game-tile bj" href="/blackjack">
+      <div class="game-tile-inner">
+        <div class="game-tile-icon">🃏</div>
+        <div class="game-tile-name">Blackjack</div>
       </div>
-      <span class="game-play">Play Blackjack</span>
     </a>
+    <a class="game-tile" href="/flip" style="background:linear-gradient(135deg,#7c3aed,#a78bfa);">
+      <div class="game-tile-inner">
+        <div class="game-tile-icon">🪙</div>
+        <div class="game-tile-name">Flip</div>
+      </div>
+    </a>
+
   </div>
 
-  <div class="features">
-    <div class="feature">
-      <div class="feature-icon">⛓️</div>
-      <h3>On-Chain</h3>
-      <p>Every bet is recorded on Solana. Fully transparent and verifiable.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">⚡</div>
-      <h3>Instant</h3>
-      <p>Sub-second Solana finality. Results confirmed in under a second.</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">👛</div>
-      <h3>Any Wallet</h3>
-      <p>Phantom, Solflare, Backpack, Glow, Coinbase and more.</p>
-    </div>
-  </div>
+
+
 </main>
-
-<footer>FreeDice Casino · Solana Devnet · For entertainment purposes only</footer>
 
 <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
 <script src="/js/solana.js"></script>
 <script>
+// Banner
+let slide = 0;
+const slides = document.querySelectorAll('.banner-slide');
+const dots = document.querySelectorAll('.banner-dot');
+function goSlide(n) {
+  slides[slide].classList.remove('active');
+  dots[slide].classList.remove('active');
+  slide = (n + slides.length) % slides.length;
+  slides[slide].classList.add('active');
+  dots[slide].classList.add('active');
+}
+function slideBanner(dir) { goSlide(slide + dir); }
+setInterval(() => slideBanner(1), 5000);
+
+// Wallet
 window.addEventListener('load', async () => {
   await FreeDiceSolana.initSolana();
   const btn = document.getElementById('connectBtn');
@@ -139,7 +198,6 @@ window.addEventListener('load', async () => {
       bal.textContent = b.toFixed(4) + ' SOL';
       const addr = FreeDiceSolana.getPublicKey();
       btn.textContent = addr.slice(0,4) + '...' + addr.slice(-4);
-      const t = document.createElement('div'); t.className = 'toast success'; t.textContent = 'Wallet connected'; document.body.appendChild(t); setTimeout(() => t.remove(), 3000);
     } catch(e) { btn.textContent = 'Connect Wallet'; }
   });
 });
