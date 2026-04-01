@@ -3,6 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 const http = require('http');
 const WebSocket = require('ws');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -12,18 +13,40 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static('public'));
-// Serve root-level assets folder too
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
-// ── In-memory state ──────────────────────────────────────────────────────────
-const balances = new Map();
-const bjSessions = new Map();
+// ── Persistent state ─────────────────────────────────────────────────────────
+const STATE_FILE = path.join(__dirname, '.gamestate.json');
+
+function loadState() {
+    try {
+        if (fs.existsSync(STATE_FILE)) {
+            const raw = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
+            return {
+                balances: new Map(Object.entries(raw.balances || {})),
+                bjSessions: new Map(Object.entries(raw.bjSessions || {}))
+            };
+        }
+    } catch (_) {}
+    return { balances: new Map(), bjSessions: new Map() };
+}
+
+function saveState() {
+    try {
+        fs.writeFileSync(STATE_FILE, JSON.stringify({
+            balances: Object.fromEntries(balances),
+            bjSessions: Object.fromEntries(bjSessions)
+        }));
+    } catch (_) {}
+}
+
+const { balances, bjSessions } = loadState();
 
 // Treasury wallet — set TREASURY_WALLET env var in production
 const TREASURY = process.env.TREASURY_WALLET || '11111111111111111111111111111111';
 
-function getBalance(wallet) { return balances.get(wallet) ?? 10; }
-function setBalance(wallet, v) { balances.set(wallet, Math.max(0, parseFloat(v.toFixed(6)))); }
+function getBalance(wallet) { return balances.get(wallet) ?? 0; }
+function setBalance(wallet, v) { balances.set(wallet, Math.max(0, parseFloat(v.toFixed(6)))); saveState(); }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const SUITS = ['♠','♥','♦','♣'];
@@ -128,6 +151,16 @@ app.get('/api/config', (req, res) => {
     });
 });
 
+// ── Recent bets feed ─────────────────────────────────────────────────────────
+const recentBets = [];
+function addBet(game, wallet, won, amount, multiplier) {
+    recentBets.unshift({ game, wallet: wallet.slice(0,4)+'...'+wallet.slice(-4), won, amount: parseFloat(amount.toFixed(4)), multiplier: parseFloat(multiplier.toFixed(2)), ts: Date.now() });
+    if (recentBets.length > 50) recentBets.pop();
+    broadcast({ type: 'bet', bet: recentBets[0] });
+}
+
+app.get('/api/bets', (req, res) => res.json(recentBets.slice(0, 20)));
+
 // ── Dice (98% RTP) ───────────────────────────────────────────────────────────
 app.post('/api/dice/roll', (req, res) => {
     const { wallet, bet, target, mode } = req.body;
@@ -146,6 +179,7 @@ app.post('/api/dice/roll', (req, res) => {
     const delta = won ? profit : -betAmt;
 
     setBalance(wallet, bal + delta);
+    addBet('Dice', wallet, won, betAmt, multiplier);
 
     res.json({
         result: parseFloat(result.toFixed(2)),
@@ -184,6 +218,7 @@ app.post('/api/blackjack/deal', (req, res) => {
         insuranceTaken: false,
         done: false
     });
+    saveState();
 
     setBalance(wallet, bal - betAmt);
 
@@ -324,6 +359,14 @@ function resolveRound(wallet, session, res) {
     const bal = getBalance(wallet);
     setBalance(wallet, bal + totalDelta);
     session.done = true;
+    saveState();
+
+    // record each hand as a bet
+    hands.forEach(hand => {
+        const p = handTotal(hand);
+        const didWin = p <= 21 && (dealerTotal > 21 || p > dealerTotal);
+        addBet('Blackjack', wallet, didWin, session.bet / hands.length, didWin ? 2 : 0);
+    });
 
     let outcome;
     if (wins > 0 && losses === 0) outcome = 'win';
@@ -342,6 +385,44 @@ function resolveRound(wallet, session, res) {
     });
 }
 
+// ── Session restore ──────────────────────────────────────────────────────────
+app.get('/api/blackjack/session/:wallet', (req, res) => {
+    const session = bjSessions.get(req.params.wallet);
+    if (!session || session.done) return res.json({ active: false });
+    res.json({
+        active: true,
+        bet: session.bet,
+        playerHand: session.playerHand,
+        dealerUp: session.dealerHand[0],
+        splitHands: session.splitHands,
+        splitIndex: session.splitIndex,
+        isSplit: !!session.splitHands,
+        balance: getBalance(req.params.wallet)
+    });
+});
+
+// ── Coin Flip (98% RTP) ─────────────────────────────────────────────────────────
+app.post('/api/flip', (req, res) => {
+    const { wallet, bet, side } = req.body;
+    if (!wallet) return res.status(400).json({ error: 'wallet required' });
+    if (side !== 'heads' && side !== 'tails') return res.status(400).json({ error: 'side must be heads or tails' });
+
+    const betAmt = parseFloat(bet) || 0;
+    const bal = getBalance(wallet);
+    if (betAmt <= 0 || betAmt > bal) return res.status(400).json({ error: 'Insufficient balance' });
+
+    const roll = crypto.randomInt(0, 10000);
+    const result = roll < 5000 ? 'heads' : 'tails';
+    const won = result === side;
+    const multiplier = 1.98;
+    const delta = won ? betAmt * (multiplier - 1) : -betAmt;
+
+    setBalance(wallet, bal + delta);
+    addBet('Flip', wallet, won, betAmt, won ? multiplier : 0);
+
+    res.json({ result, won, multiplier, delta: parseFloat(delta.toFixed(6)), balance: getBalance(wallet) });
+});
+
 // ── Settle hook ──────────────────────────────────────────────────────────────
 app.post('/api/settle', (req, res) => {
     const { player, game, betSig, won, multiplier, amountSol } = req.body;
@@ -354,5 +435,6 @@ app.post('/api/settle', (req, res) => {
 app.get('/',          (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/dice',      (req, res) => res.sendFile(path.join(__dirname, 'public', 'dice.html')));
 app.get('/blackjack', (req, res) => res.sendFile(path.join(__dirname, 'public', 'blackjack.html')));
+app.get('/flip',      (req, res) => res.sendFile(path.join(__dirname, 'public', 'flip.html')));
 
 server.listen(PORT, () => console.log(`FreeDice running on http://localhost:${PORT}`));

@@ -262,8 +262,8 @@ function connectChat() {
   chatWs = new WebSocket(`ws://${location.host}`);
   chatWs.onmessage = e => {
     const d = JSON.parse(e.data);
-    if (d.type === 'bet') loadBets();
-    if (d.type === 'users') document.getElementById('onlineCount').textContent = '\u25CF ' + d.count + ' online';
+    if (d.type === 'bet') { loadBets(); }
+    if (d.type === 'users') document.getElementById('onlineCount').textContent = d.count + ' online';
     if (d.type === 'chat') appendMsg(d);
     if (d.type === 'history') d.messages.forEach(appendMsg);
   };
