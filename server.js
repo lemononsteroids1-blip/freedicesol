@@ -410,7 +410,7 @@ app.post('/api/flip', (req, res) => {
 
     const betAmt = parseFloat(bet) || 0;
     const bal = getBalance(wallet);
-    if (betAmt <= 0 || betAmt > bal) return res.status(400).json({ error: 'Insufficient balance' });
+    if (betAmt < 0 || betAmt > bal) return res.status(400).json({ error: 'Insufficient balance' });
 
     const roll = crypto.randomInt(0, 10000);
     const result = roll < 5000 ? 'heads' : 'tails';
