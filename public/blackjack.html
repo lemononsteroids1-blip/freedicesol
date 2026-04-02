@@ -13,7 +13,16 @@
         .header { padding: 16px 24px; background: #1a1f2e; display: flex; justify-content: space-between; align-items: center; height: 78px; }
         .logo-link { display: inline-flex; align-items: center; text-decoration: none; }
         .logo-img { height: 72px; width: auto; display: block; }
-        .logo-fallback { font-size: 24px; font-weight: 700; color: #fff; }
+        .header-left { display: flex; align-items: center; }
+        .nav-tabs { display: flex; align-items: center; gap: 4px; margin-left: 24px; }
+        .nav-tab { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #8b949e; text-decoration: none; border: none; background: none; cursor: pointer; transition: all 0.15s; position: relative; }
+        .nav-tab:hover { background: #2a2f3e; color: #fff; }
+        .nav-tab.active { background: #2a2f3e; color: #fff; }
+        .nav-tab .dropdown { display: none; position: absolute; top: 100%; left: 0; padding-top: 8px; min-width: 160px; z-index: 100; }
+        .nav-tab:hover .dropdown { display: flex; flex-direction: column; }
+        .dropdown-inner { background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 10px; padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: flex; flex-direction: column; }
+        .dropdown-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 7px; color: #cdd5e0; font-size: 14px; font-weight: 600; text-decoration: none; transition: background 0.15s; }
+        .dropdown-item:hover { background: #2a2f3e; color: #fff; }
         .balance-display { background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 12px 24px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 16px; color: #fff; height: 48px; }
         .deposit-btn { background: #1e40af; border: none; border-radius: 8px; padding: 12px 24px; color: #fff; font-weight: 600; cursor: pointer; font-size: 16px; transition: all 0.2s ease; height: 48px; }
         .deposit-btn:hover { background: #1d4ed8; }
@@ -29,10 +38,7 @@
         .quick-bets { display: flex; gap: 8px; }
         .quick-bet { flex: 1; background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 10px; color: #8b949e; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.2s ease; }
         .quick-bet:hover { background: #3a3f4e; color: #fff; }
-        .payout-box { text-align: center; }
-        .payout-label { color: #fff; font-size: 11px; font-weight: 500; text-transform: uppercase; margin-bottom: 8px; }
-        .payout-value { color: #fff; font-size: 20px; font-weight: 700; }
-        .deal-button { background: #1e40af; border: none; border-radius: 8px; padding: 20px; color: #fff; font-weight: 700; font-size: 18px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; margin-top: auto; transition: all 0.2s ease; }
+.deal-button { background: #1e40af; border: none; border-radius: 8px; padding: 20px; color: #fff; font-weight: 700; font-size: 18px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; margin-top: auto; transition: all 0.2s ease; }
         .deal-button:hover:not(:disabled) { background: #1d4ed8; transform: translateY(-1px); }
         .deal-button:disabled { background: #4a5568; cursor: not-allowed; transform: none; }
 
@@ -79,6 +85,9 @@
         .score-pill.visible { display: inline-block; }
         .score-pill.bust  { background: #7f1d1d; border-color: #f56565; color: #f56565; }
         .score-pill.bj    { background: #14532d; border-color: #48bb78; color: #48bb78; }
+        .score-pill.win   { background: #14532d; border-color: #48bb78; color: #48bb78; }
+        .score-pill.lose  { background: #7f1d1d; border-color: #f56565; color: #f56565; }
+        .score-pill.push  { background: #78350f; border-color: #f59e0b; color: #f59e0b; }
 
         /* Cards row */
         .hand-zone { display: flex; gap: 12px; align-items: center; justify-content: center; flex-wrap: wrap; min-height: 180px; }
@@ -87,15 +96,16 @@
         .split-row { display: flex; gap: 32px; align-items: flex-start; justify-content: center; width: 100%; }
         .split-hand { display: flex; flex-direction: column; align-items: center; gap: 8px; }
         .split-hand .hand-zone { min-height: 150px; }
-        .split-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 12px; border-radius: 999px; background: #2a2f3e; border: 1px solid #3a3f4e; color: #8b949e; }
-        .split-label.active { background: #1e40af; border-color: #3b82f6; color: #fff; }
+        .split-arrow { width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-top: 20px solid #fff; opacity: 0; transition: opacity 0.2s; }
+        .split-arrow.active { opacity: 1; }
+        .split-arrow.done { opacity: 0; }
 
         /* ── Card base ── */
         .card {
-            width: clamp(90px, 9vw, 140px);
-            height: clamp(126px, 12.6vw, 196px);
-            border-radius: 10px;
-            border: 4px solid #fff;
+            width: clamp(60px, 7vw, 120px);
+            height: clamp(84px, 9.8vw, 168px);
+            border-radius: 8px;
+            border: 3px solid #fff;
             box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.3);
             position: relative;
             flex-shrink: 0;
@@ -110,17 +120,17 @@
             flex-direction: column;
             align-items: center;
             line-height: 1.1;
-            padding: 6px 8px;
+            padding: 4px 6px;
         }
         .card-corner.tl { top: 0; left: 0; }
         .card-corner.br { bottom: 0; right: 0; transform: rotate(180deg); }
-        .card-corner .rank { font-size: clamp(16px, 1.6vw, 26px); font-weight: 800; }
-        .card-corner .suit { font-size: clamp(11px, 1.1vw, 18px); margin-top: 1px; }
+        .card-corner .rank { font-size: clamp(11px, 1.2vw, 20px); font-weight: 800; }
+        .card-corner .suit { font-size: clamp(8px, 0.9vw, 14px); margin-top: 1px; }
         .card-mid {
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            font-size: clamp(36px, 4vw, 64px);
+            font-size: clamp(24px, 3vw, 52px);
             line-height: 1;
             pointer-events: none;
         }
@@ -207,9 +217,25 @@
 <body>
 
 <header class="header">
-    <a class="logo-link" href="/" aria-label="Go to home">
-        <img class="logo-img" src="/assets/Free Dice.png" alt="FreeDice">
-    </a>
+    <div class="header-left">
+        <a class="logo-link" href="/">
+            <img class="logo-img" src="/assets/Free Dice.png" alt="FreeDice">
+        </a>
+        <nav class="nav-tabs">
+            <div class="nav-tab">
+                Originals
+                <div class="dropdown">
+                    <div class="dropdown-inner">
+                        <a class="dropdown-item" href="/blackjack">Blackjack</a>
+                        <a class="dropdown-item" href="/dice">Dice</a>
+                        <a class="dropdown-item" href="/flip">Flip</a>
+                    </div>
+                </div>
+            </div>
+            <a class="nav-tab" href="/">Casino</a>
+            <a class="nav-tab" href="#">Sports</a>
+        </nav>
+    </div>
     <div style="display:flex;align-items:center;gap:16px;">
         <div class="balance-display"><img src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png" style="width:18px;height:18px;border-radius:50%;flex-shrink:0;"><span id="balance">0.0000 SOL</span></div>
         <button class="deposit-btn" id="walletBtn">Connect Wallet</button>
@@ -229,10 +255,7 @@
             <button class="quick-bet" onclick="doubleBet()">2x</button>
             <button class="quick-bet" onclick="maxBet()">MAX</button>
         </div>
-        <div class="payout-box">
-            <div class="payout-label">Profit on Win</div>
-            <div class="payout-value" id="profitDisplay">0.0100 SOL</div>
-        </div>
+
         <button class="deal-button" id="dealBtn" onclick="deal()">Deal</button>
     </div>
 
@@ -259,12 +282,12 @@
             <div id="splitPlayerZone" style="display:none;width:100%;">
                 <div class="split-row">
                     <div class="split-hand">
-                        <span class="split-label" id="splitLabel0">Hand 1</span>
+                        <div class="split-arrow" id="splitArrow0"></div>
                         <div class="hand-zone" id="splitCards0"></div>
                         <div class="score-pill" id="splitScore0"></div>
                     </div>
                     <div class="split-hand">
-                        <span class="split-label" id="splitLabel1">Hand 2</span>
+                        <div class="split-arrow" id="splitArrow1"></div>
                         <div class="hand-zone" id="splitCards1"></div>
                         <div class="score-pill" id="splitScore1"></div>
                     </div>
@@ -293,6 +316,7 @@
     let doubled = false;
     let splitHands = [], splitIndex = 0, isSplit = false, splitAces = false;
     let dealerHoleRevealed = false;
+    let doneHands = new Set(); // tracks which split hand indices are finished
 
     const SUITS = ["♠","♥","♦","♣"];
     const RANKS = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
@@ -300,11 +324,43 @@
     function formatSol(a) { return Number(a).toFixed(4) + " SOL"; }
 
     function showToast(msg, type) {
+        document.querySelectorAll('.toast').forEach(t => t.remove());
         const t = document.createElement("div");
         t.className = `toast ${type}`;
         t.textContent = msg;
         document.body.appendChild(t);
         setTimeout(() => t.remove(), 3000);
+    }
+
+    function saveSession() {
+        if (!gameInProgress) { localStorage.removeItem('bj_session'); return; }
+        localStorage.setItem('bj_session', JSON.stringify({
+            playerHand, dealerHand, deck,
+            isSplit, splitHands, splitIndex, splitAces,
+            doubled, doneHands: [...doneHands],
+            bet: parseFloat(document.getElementById('betAmount').value) || 0,
+            balance
+        }));
+    }
+
+    function loadSession() {
+        try {
+            const raw = localStorage.getItem('bj_session');
+            if (!raw) return false;
+            const s = JSON.parse(raw);
+            playerHand = s.playerHand; dealerHand = s.dealerHand; deck = s.deck;
+            isSplit = s.isSplit; splitHands = s.splitHands; splitIndex = s.splitIndex;
+            splitAces = s.splitAces; doubled = s.doubled;
+            doneHands = new Set(s.doneHands || []);
+            balance = s.balance;
+            document.getElementById('betAmount').value = s.bet.toFixed(4);
+            updateBalance();
+            gameInProgress = true;
+            renderHands(true);
+            document.getElementById('dealBtn').disabled = true;
+            showActions(true);
+            return true;
+        } catch(_) { localStorage.removeItem('bj_session'); return false; }
     }
 
     function buildDeck() {
@@ -381,13 +437,14 @@
             splitHands.forEach((hand, hi) => {
                 const zone = document.getElementById("splitCards" + hi);
                 const scoreEl = document.getElementById("splitScore" + hi);
-                const labelEl = document.getElementById("splitLabel" + hi);
+                const arrowEl = document.getElementById("splitArrow" + hi);
                 zone.innerHTML = "";
                 hand.forEach((c, i) => zone.appendChild(makeCardEl(c, false, i * 60)));
                 const t = handTotal(hand);
                 scoreEl.textContent = t;
                 scoreEl.className = "score-pill visible" + (t > 21 ? " bust" : t === 21 && hand.length === 2 ? " bj" : "");
-                labelEl.className = "split-label" + (hi === splitIndex ? " active" : "");
+                const isDone = doneHands.has(hi);
+                arrowEl.className = "split-arrow" + (isDone ? " done" : hi === splitIndex ? " active" : "");
             });
             // dealer score
             const dp = document.getElementById("dealerScore");
@@ -423,14 +480,9 @@
         document.getElementById("dealBtn").disabled = visible;
     }
 
-    function updateProfitDisplay() {
-        const bet = parseFloat(document.getElementById("betAmount").value) || 0;
-        document.getElementById("profitDisplay").textContent = formatSol(bet);
-    }
-
-    function halveBet()  { const v = parseFloat(document.getElementById("betAmount").value)||0; document.getElementById("betAmount").value=(v/2).toFixed(4); updateProfitDisplay(); }
-    function doubleBet() { const v = parseFloat(document.getElementById("betAmount").value)||0; document.getElementById("betAmount").value=Math.min(v*2,balance).toFixed(4); updateProfitDisplay(); }
-    function maxBet()    { document.getElementById("betAmount").value=balance.toFixed(4); updateProfitDisplay(); }
+function halveBet()  { const v = parseFloat(document.getElementById("betAmount").value)||0; document.getElementById("betAmount").value=(v/2).toFixed(4); }
+    function doubleBet() { const v = parseFloat(document.getElementById("betAmount").value)||0; document.getElementById("betAmount").value=Math.min(v*2,balance).toFixed(4); }
+    function maxBet()    { document.getElementById("betAmount").value=balance.toFixed(4); }
 
     function updateBalance() {
         document.getElementById("balance").textContent = formatSol(balance);
@@ -441,9 +493,11 @@
         try {
             await FreeDiceSolana.connectWallet();
             walletConnected = true;
-            document.getElementById("walletBtn").textContent = "Wallet Connected";
-            const b = await FreeDiceSolana.getSolBalance();
-            balance = b; updateBalance();
+            const addr = FreeDiceSolana.getPublicKey();
+            document.getElementById("walletBtn").textContent = addr.slice(0,4) + '...' + addr.slice(-4);
+            const r = await fetch(`/api/balance/${addr}`);
+            balance = (await r.json()).balance;
+            updateBalance();
             showToast("Wallet connected", "success");
         } catch(e) { showToast(e.message || "Connection failed", "error"); }
     }
@@ -452,40 +506,49 @@
         if (!walletConnected) { showToast("Connect wallet first", "error"); return; }
         if (gameInProgress) { showToast("Finish the current hand first", "error"); return; }
         const bet = parseFloat(document.getElementById("betAmount").value) || 0;
-        if (bet < 0 || bet > balance) { showToast("Insufficient balance", "error"); return; }
-
-        gameInProgress = true;
-
-        deck = buildDeck();
-        playerHand = [deck.pop(), deck.pop()];
-        dealerHand = [deck.pop(), deck.pop()];
-        isSplit = false; splitHands = []; splitIndex = 0; doubled = false; splitAces = false;
-        dealerHoleRevealed = false;
-
-        document.getElementById("resultBanner").textContent = "";
-        document.getElementById("resultBanner").className = "result-banner";
-
-        renderHands(true);
-        document.getElementById("dealBtn").disabled = true;
-        showActions(true);
-        if (handTotal(playerHand) === 21) setTimeout(() => stand(), 600);
+        if (bet > balance) { showToast("Insufficient balance", "error"); return; }
+        const wallet = FreeDiceSolana.getPublicKey();
+        fetch('/api/blackjack/deal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ wallet, bet })
+        }).then(r => r.json()).then(data => {
+            if (data.error) { showToast(data.error, 'error'); return; }
+            balance = data.balance;
+            updateBalance();
+            gameInProgress = true;
+            playerHand = data.playerHand;
+            dealerHand = [data.dealerUp, { r: '?', s: '?' }];
+            deck = []; isSplit = false; splitHands = []; splitIndex = 0; doubled = false; splitAces = false;
+            dealerHoleRevealed = false; doneHands = new Set();
+            document.getElementById('resultBanner').textContent = '';
+            document.getElementById('resultBanner').className = 'result-banner';
+            saveSession();
+            renderHands(true);
+            document.getElementById('dealBtn').disabled = true;
+            showActions(true);
+            if (data.naturalBJ) setTimeout(() => endRound(), 600);
+        }).catch(e => showToast(e.message, 'error'));
     }
 
     function hit() {
         const hand = isSplit ? splitHands[splitIndex] : playerHand;
         hand.push(deck.pop());
+        saveSession();
         renderHands(true);
         if (handTotal(hand) > 21) {
-            if (isSplit && splitIndex === 0) {
-                splitIndex = 1;
+            if (isSplit && splitIndex === 1) {
+                doneHands.add(1);
+                splitIndex = 0;
                 renderHands(true);
                 showActions(true);
             } else {
                 endRound();
             }
         } else if (handTotal(hand) === 21) {
-            if (isSplit && splitIndex === 0) {
-                splitIndex = 1;
+            if (isSplit && splitIndex === 1) {
+                doneHands.add(1);
+                splitIndex = 0;
                 renderHands(true);
                 showActions(true);
             } else {
@@ -498,13 +561,13 @@
     }
 
     function stand() {
-        if (isSplit && splitIndex === 0) {
-            splitIndex = 1;
+        if (isSplit && splitIndex === 1) {
+            doneHands.add(1);
+            splitIndex = 0;
             renderHands(true);
             showActions(true);
             return;
         }
-        while (handTotal(dealerHand) < 17) dealerHand.push(deck.pop());
         endRound();
     }
 
@@ -516,8 +579,9 @@
         const hand = isSplit ? splitHands[splitIndex] : playerHand;
         hand.push(deck.pop());
         renderHands(true);
-        if (isSplit && splitIndex === 0) {
-            splitIndex = 1;
+        if (isSplit && splitIndex === 1) {
+            doneHands.add(1);
+            splitIndex = 0;
             renderHands(true);
             showActions(true);
         } else if (handTotal(hand) > 21) {
@@ -531,79 +595,48 @@
         const bet = parseFloat(document.getElementById("betAmount").value) || 0;
         balance -= bet; updateBalance();
         splitAces = playerHand[0].r === "A";
-        // Deal one card to each split hand immediately
         splitHands = [[playerHand[0], deck.pop()], [playerHand[1], deck.pop()]];
-        isSplit = true; splitIndex = 0;
+        isSplit = true; splitIndex = 1;
+        saveSession(); // start on right hand (index 1)
         renderHands(true);
         showActions(true);
     }
 
     function endRound() {
         showActions(false);
-        renderHands(false, true);
-
-        const bet = parseFloat(document.getElementById("betAmount").value) || 0;
-        const dealer = handTotal(dealerHand);
-        const hands = isSplit ? splitHands : [playerHand];
-        let totalDelta = 0;
-        let wins = 0, losses = 0, pushes = 0;
-
-        for (const hand of hands) {
-            const p = handTotal(hand);
-            const bj = hand.length === 2 && p === 21 && !isSplit;
-            const dealerBJ = dealerHand.length === 2 && dealer === 21;
-            if (p > 21) {
-                totalDelta -= bet;
-                losses++;
-            } else if (bj && dealerBJ) {
-                pushes++; // both BJ = push
-            } else if (bj) {
-                totalDelta += bet * 1.5; // player BJ, dealer no BJ = win 3:2
-                wins++;
-            } else if (dealerBJ || dealer > p) {
-                totalDelta -= bet;
-                losses++;
-            } else if (dealer > 21 || p > dealer) {
-                totalDelta += bet;
-                wins++;
-            } else if (p === dealer) {
-                pushes++;
-            } else {
-                totalDelta -= bet;
-                losses++;
-            }
-        }
-
-        balance += totalDelta;
-        updateBalance();
-        gameInProgress = false;
-
-        let outcome;
-        if (wins > 0 && losses === 0)      outcome = "win";
-        else if (losses > 0 && wins === 0) outcome = "lose";
-        else if (pushes === hands.length)  outcome = "push";
-        else                               outcome = wins > losses ? "win" : "lose";
-
-        showToast(
-            outcome === "win"  ? (bet > 0 ? `+${formatSol(totalDelta)}` : "You win!") :
-            outcome === "lose" ? (bet > 0 ? formatSol(totalDelta) : "You lose!") :
-            "Push — bet returned",
-            outcome === "win" ? "success" : outcome === "lose" ? "error" : "success"
-        );
+        const wallet = FreeDiceSolana.getPublicKey();
+        fetch('/api/blackjack/stand', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ wallet })
+        }).then(r => r.json()).then(data => {
+            if (data.error) { showToast(data.error, 'error'); return; }
+            balance = data.balance;
+            updateBalance();
+            localStorage.removeItem('bj_session');
+            gameInProgress = false;
+            dealerHand = data.dealerHand;
+            renderHands(false, true);
+            const outcome = data.outcome;
+            const bet = parseFloat(document.getElementById('betAmount').value) || 0;
+            const toastMsg = outcome === 'win' ? `+${formatSol(data.totalDelta - bet)}` :
+                outcome === 'lose' ? `-${formatSol(bet)}` : 'Push — bet returned';
+            showToast(toastMsg, outcome === 'win' ? 'success' : outcome === 'lose' ? 'error' : 'success');
+        }).catch(e => showToast(e.message, 'error'));
     }
 
     window.addEventListener("load", async () => {
         await FreeDiceSolana.initSolana();
         document.getElementById("walletBtn").addEventListener("click", connectWallet);
-        document.getElementById("betAmount").addEventListener("input", updateProfitDisplay);
         if (FreeDiceSolana.isConnected()) {
             walletConnected = true;
             const addr = FreeDiceSolana.getPublicKey();
             document.getElementById("walletBtn").textContent = addr.slice(0,4) + '...' + addr.slice(-4);
-            balance = await FreeDiceSolana.getSolBalance();
+            const r = await fetch(`/api/balance/${addr}`);
+            balance = (await r.json()).balance;
             updateBalance();
+            loadSession();
         }
-        updateProfitDisplay();
     });
 </script>
 </body>

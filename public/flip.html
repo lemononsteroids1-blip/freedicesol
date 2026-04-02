@@ -22,7 +22,7 @@
         .dropdown-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 7px; color: #cdd5e0; font-size: 14px; font-weight: 600; text-decoration: none; transition: background 0.15s; }
         .dropdown-item:hover { background: #2a2f3e; color: #fff; }
         .balance-display { background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 12px 24px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 16px; color: #fff; height: 48px; }
-        .balance-amount { color: #fff; font-family: monospace; }
+        .balance-amount { color: #fff; }
         .deposit-btn { background: #1e40af; border: none; border-radius: 8px; padding: 12px 24px; color: #fff; font-weight: 600; cursor: pointer; font-size: 16px; transition: all 0.2s ease; height: 48px; }
         .deposit-btn:hover { background: #1d4ed8; }
         .main-content { display: flex; height: calc(100vh - 78px); }
@@ -257,12 +257,10 @@
                 setTimeout(async () => {
                     coin.className = "coin " + (data.result === "heads" ? "show-heads" : "show-tails");
                     wrap.className = "coin-wrap";
-
-                    balance = await FreeDiceSolana.getSolBalance();
+                    balance = data.balance;
                     updateBalance();
                     const profit = bet * (MULTIPLIER - 1);
                     showToast(data.won ? `+${formatSol(profit)}` : `-${formatSol(bet)}`, data.won ? "success" : "error");
-
                     flipping = false;
                     btn.disabled = false;
                 }, 1150);
@@ -281,7 +279,8 @@
                 walletConnected = true;
                 const addr = FreeDiceSolana.getPublicKey();
                 document.getElementById("walletBtn").textContent = addr.slice(0,4)+"..."+addr.slice(-4);
-                balance = await FreeDiceSolana.getSolBalance();
+                const r = await fetch(`/api/balance/${addr}`);
+                balance = (await r.json()).balance;
                 updateBalance();
                 showToast("Wallet connected", "success");
             } catch(e) { showToast(e.message || "Wallet connection failed", "error"); }
@@ -295,7 +294,8 @@
                 walletConnected = true;
                 const addr = FreeDiceSolana.getPublicKey();
                 document.getElementById("walletBtn").textContent = addr.slice(0,4)+"..."+addr.slice(-4);
-                balance = await FreeDiceSolana.getSolBalance();
+                const r = await fetch(`/api/balance/${addr}`);
+                balance = (await r.json()).balance;
                 updateBalance();
             }
             updatePayout();
