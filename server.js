@@ -424,7 +424,38 @@ app.post('/api/flip', (req, res) => {
     res.json({ result, won, multiplier, delta: parseFloat(delta.toFixed(6)), balance: getBalance(wallet) });
 });
 
-// ── Settle hook ──────────────────────────────────────────────────────────────
+// ── Plinko ───────────────────────────────────────────────────────────────────
+const PLINKO_MULTIPLIERS = {
+    low:    { 8:[5.6,2.1,1.1,1,0.5,1,1.1,2.1,5.6], 12:[8.9,3,1.4,1.1,1,0.5,1,1.1,1.4,3,8.9], 16:[15,8,3,1.5,1.1,1,0.5,0.3,0.5,1,1.1,1.5,3,8,15] },
+    medium: { 8:[13,3,1.3,0.7,0.4,0.7,1.3,3,13], 12:[24,6,2,1.4,0.6,0.4,0.6,1.4,2,6,24], 16:[110,41,10,5,3,1.5,1,0.5,0.3,0.5,1,1.5,3,5,10,41,110] },
+    high:   { 8:[29,4,1.5,0.3,0.2,0.3,1.5,4,29], 12:[170,24,8.1,2,0.7,0.2,0.7,2,8.1,24,170], 16:[1000,130,26,9,4,2,0.2,0.2,0.2,0.2,0.2,2,4,9,26,130,1000] }
+};
+
+app.post('/api/plinko', (req, res) => {
+    const { wallet, bet, rows, risk } = req.body;
+    if (!wallet) return res.status(400).json({ error: 'wallet required' });
+    const betAmt = parseFloat(bet) || 0;
+    const bal = getBalance(wallet);
+    if (betAmt < 0 || betAmt > bal) return res.status(400).json({ error: 'Insufficient balance' });
+
+    // Simulate ball path through pegs
+    let pos = 0;
+    const numRows = parseInt(rows) || 16;
+    for (let i = 0; i < numRows; i++) {
+        pos += crypto.randomInt(0, 2); // 0 = left, 1 = right
+    }
+    const mults = PLINKO_MULTIPLIERS[risk]?.[numRows] || PLINKO_MULTIPLIERS.high[16];
+    const multiplier = mults[Math.min(pos, mults.length - 1)];
+    const payout = parseFloat((betAmt * multiplier).toFixed(6));
+    const delta = payout - betAmt;
+
+    setBalance(wallet, bal + delta);
+    addBet('Plinko', wallet, payout >= betAmt, betAmt, multiplier);
+
+    res.json({ multiplier, payout, delta: parseFloat(delta.toFixed(6)), balance: getBalance(wallet) });
+});
+
+
 app.post('/api/settle', (req, res) => {
     const { player, game, betSig, won, multiplier, amountSol } = req.body;
     console.log(`SETTLE: ${game} player=${player?.slice(0,8)} won=${won} mult=${multiplier} bet=${amountSol}`);
@@ -436,6 +467,7 @@ app.post('/api/settle', (req, res) => {
 app.get('/',          (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/dice',      (req, res) => res.sendFile(path.join(__dirname, 'public', 'dice.html')));
 app.get('/blackjack', (req, res) => res.sendFile(path.join(__dirname, 'public', 'blackjack.html')));
-app.get('/flip',      (req, res) => res.sendFile(path.join(__dirname, 'public', 'flip.html')));
+app.get('/plinko',    (req, res) => res.sendFile(path.join(__dirname, 'public', 'plinko.html')));
+
 
 server.listen(PORT, () => console.log(`FreeDice running on http://localhost:${PORT}`));
