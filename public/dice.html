@@ -11,7 +11,16 @@
         .header { padding: 16px 24px; background: #1a1f2e; display: flex; justify-content: space-between; align-items: center; height: 78px; }
         .logo-link { display: inline-flex; align-items: center; text-decoration: none; }
         .logo-img { height: 72px; width: auto; display: block; }
-        .logo-fallback { font-size: 24px; font-weight: 700; color: #fff; }
+        .header-left { display: flex; align-items: center; }
+        .nav-tabs { display: flex; align-items: center; gap: 4px; margin-left: 24px; }
+        .nav-tab { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #8b949e; text-decoration: none; border: none; background: none; cursor: pointer; transition: all 0.15s; position: relative; }
+        .nav-tab:hover { background: #2a2f3e; color: #fff; }
+        .nav-tab.active { background: #2a2f3e; color: #fff; }
+        .nav-tab .dropdown { display: none; position: absolute; top: 100%; left: 0; padding-top: 8px; min-width: 160px; z-index: 100; }
+        .nav-tab:hover .dropdown { display: flex; flex-direction: column; }
+        .dropdown-inner { background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 10px; padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: flex; flex-direction: column; }
+        .dropdown-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 7px; color: #cdd5e0; font-size: 14px; font-weight: 600; text-decoration: none; transition: background 0.15s; }
+        .dropdown-item:hover { background: #2a2f3e; color: #fff; }
         .balance-display { background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 12px 24px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 16px; color: #fff; height: 48px; }
         .balance-amount { color: #fff; font-family: monospace; }
         .deposit-btn { background: #1e40af; border: none; border-radius: 8px; padding: 12px 24px; color: #fff; font-weight: 600; cursor: pointer; font-size: 16px; transition: all 0.2s ease; height: 48px; }
@@ -51,9 +60,25 @@
 </head>
 <body>
     <header class="header">
-        <a class="logo-link" href="/" aria-label="Go to home">
-            <img class="logo-img" src="/assets/Free Dice.png" alt="FreeDice">
-        </a>
+        <div class="header-left">
+            <a class="logo-link" href="/">
+                <img class="logo-img" src="/assets/Free Dice.png" alt="FreeDice">
+            </a>
+            <nav class="nav-tabs">
+                <div class="nav-tab">
+                    Originals
+                    <div class="dropdown">
+                        <div class="dropdown-inner">
+                            <a class="dropdown-item" href="/blackjack">Blackjack</a>
+                            <a class="dropdown-item" href="/dice">Dice</a>
+                            <a class="dropdown-item" href="/flip">Flip</a>
+                        </div>
+                    </div>
+                </div>
+                <a class="nav-tab" href="/">Casino</a>
+                <a class="nav-tab" href="#">Sports</a>
+            </nav>
+        </div>
         <div style="display:flex;align-items:center;gap:16px;">
             <div class="balance-display"><img src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png" style="width:18px;height:18px;border-radius:50%;flex-shrink:0;"><span class="balance-amount" id="balance">0.0000 SOL</span></div>
             <button class="deposit-btn" id="walletBtn">Connect Wallet</button>
@@ -110,7 +135,7 @@
     <script>
         let balance = 0;
         let wallet = null;
-        let target = 49.0;
+        let target = 51.0;
         let mode = "over";
         let isDragging = false;
         let walletConnected = false;
@@ -129,8 +154,10 @@
                 await FreeDiceSolana.connectWallet();
                 walletConnected = true;
                 wallet = FreeDiceSolana.getPublicKey();
-                document.getElementById("walletBtn").textContent = "Wallet Connected";
-                balance = await FreeDiceSolana.getSolBalance();
+                document.getElementById("walletBtn").textContent = wallet.slice(0,4) + '...' + wallet.slice(-4);
+                const r = await fetch(`/api/balance/${wallet}`);
+                const d = await r.json();
+                balance = d.balance;
                 updateBalance();
                 updateStats();
                 showToast("Wallet connected", "success");
@@ -217,35 +244,29 @@
             if (!walletConnected) { showToast("Connect wallet first", "error"); return; }
 
             const bet = parseFloat(document.getElementById("betAmount").value) || 0;
+            if (bet <= 0) { showToast("Enter a bet amount", "error"); return; }
+            if (bet > balance) { showToast("Insufficient balance", "error"); return; }
             const btn = document.getElementById("rollBtn");
             btn.disabled = true;
 
             try {
-                // Place bet on-chain first if bet > 0
-                let betSig = null;
-                if (bet > 0) {
-                    const { sig } = await FreeDiceSolana.placeBetOnChain("dice", bet, { target, mode });
-                    betSig = sig;
-                }
+                const res = await fetch("/api/dice/roll", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ wallet, bet, target, mode })
+                });
+                const data = await res.json();
+                if (data.error) { showToast(data.error, "error"); return; }
 
-                // Resolve roll client-side
-                const result = parseFloat((Math.random() * 100).toFixed(2));
                 const winChance = mode === "under" ? target : 100 - target;
                 const multiplier = 98 / winChance;
-                const won = mode === "under" ? result < target : result > target;
                 const profit = bet * (multiplier - 1);
 
-                showResultLine(result);
-                if (bet > 0) balance = await FreeDiceSolana.getSolBalance();
+                showResultLine(data.result);
+                balance = data.balance;
                 updateBalance();
                 updateStats();
-
-                // Settle on-chain if bet > 0
-                if (bet > 0 && betSig) {
-                    FreeDiceSolana.settleBetOnChain("dice", betSig, won, multiplier, bet).catch(() => {});
-                }
-
-                showToast(won ? `+${formatSol(profit)}` : `-${formatSol(bet)}`, won ? "success" : "error");
+                showToast(data.won ? `+${formatSol(profit)}` : `-${formatSol(bet)}`, data.won ? "success" : "error");
             } catch (e) {
                 showToast(e.message || "Roll failed", "error");
             } finally {
@@ -279,9 +300,10 @@
             if (FreeDiceSolana.isConnected()) {
                 walletConnected = true;
                 wallet = FreeDiceSolana.getPublicKey();
-                const addr = wallet;
-                document.getElementById("walletBtn").textContent = addr.slice(0,4) + '...' + addr.slice(-4);
-                balance = await FreeDiceSolana.getSolBalance();
+                document.getElementById("walletBtn").textContent = wallet.slice(0,4) + '...' + wallet.slice(-4);
+                const r = await fetch(`/api/balance/${wallet}`);
+                const d = await r.json();
+                balance = d.balance;
                 updateBalance();
             }
             updateStats();
