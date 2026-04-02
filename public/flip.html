@@ -221,7 +221,6 @@
             if (flipping) return;
 
             const bet = parseFloat(document.getElementById("betAmount").value) || 0;
-            if (bet <= 0) { showToast("Enter a bet amount", "error"); return; }
             if (bet > balance) { showToast("Insufficient balance", "error"); return; }
 
             flipping = true;
