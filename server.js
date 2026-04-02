@@ -160,7 +160,7 @@ function addBet(game, wallet, won, amount, multiplier) {
     broadcast({ type: 'bet', bet: recentBets[0] });
 }
 
-app.get('/api/bets', (req, res) => res.json(recentBets.slice(0, 20)));
+app.get('/api/bets', (req, res) => res.json(recentBets.slice(0, 50)));
 
 // ── Dice (98% RTP) ───────────────────────────────────────────────────────────
 app.post('/api/dice/roll', (req, res) => {
