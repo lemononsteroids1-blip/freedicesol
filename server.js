@@ -437,8 +437,6 @@ app.post('/api/plinko', (req, res) => {
     const betAmt = parseFloat(bet) || 0;
     const bal = getBalance(wallet);
     if (betAmt < 0 || betAmt > bal) return res.status(400).json({ error: 'Insufficient balance' });
-
-    // Simulate ball path through pegs
     let pos = 0;
     const numRows = parseInt(rows) || 16;
     for (let i = 0; i < numRows; i++) {
@@ -467,6 +465,7 @@ app.post('/api/settle', (req, res) => {
 app.get('/',          (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 app.get('/dice',      (req, res) => res.sendFile(path.join(__dirname, 'public', 'dice.html')));
 app.get('/blackjack', (req, res) => res.sendFile(path.join(__dirname, 'public', 'blackjack.html')));
+app.get('/flip',      (req, res) => res.sendFile(path.join(__dirname, 'public', 'flip.html')));
 app.get('/plinko',    (req, res) => res.sendFile(path.join(__dirname, 'public', 'plinko.html')));
 
 
