@@ -453,21 +453,40 @@ app.post('/api/flip', (req, res) => {
 });
 
 // ── Plinko ───────────────────────────────────────────────────────────────────
+// Multipliers matching Stake.com presets (rows 8–16, low/medium/high risk)
 const PLINKO_MULTIPLIERS = {
     low: {
          8: [5.6, 2.1, 1.1, 1.0, 0.5, 1.0, 1.1, 2.1, 5.6],
-        12: [8.9, 3.0, 1.4, 1.1, 1.0, 0.5, 1.0, 1.1, 1.4, 3.0, 8.9],
-        16: [16, 9, 2, 1.4, 1.4, 1.2, 1.1, 1.0, 0.5, 1.0, 1.1, 1.2, 1.4, 1.4, 2, 9, 16]
+         9: [5.6, 2.0, 1.6, 1.0, 0.7, 0.7, 1.0, 1.6, 2.0, 5.6],
+        10: [8.9, 3.0, 1.4, 1.1, 1.0, 0.5, 1.0, 1.1, 1.4, 3.0, 8.9],
+        11: [8.4, 3.0, 1.9, 1.3, 1.0, 0.7, 0.7, 1.0, 1.3, 1.9, 3.0, 8.4],
+        12: [10, 3.0, 1.6, 1.4, 1.1, 1.0, 0.5, 1.0, 1.1, 1.4, 1.6, 3.0, 10],
+        13: [8.1, 4.0, 3.0, 1.9, 1.2, 0.9, 0.6, 0.6, 0.9, 1.2, 1.9, 3.0, 4.0, 8.1],
+        14: [7.1, 4.0, 1.9, 1.4, 1.3, 1.1, 1.0, 0.5, 1.0, 1.1, 1.3, 1.4, 1.9, 4.0, 7.1],
+        15: [15, 8.0, 3.0, 2.0, 1.5, 1.1, 1.0, 0.7, 0.7, 1.0, 1.1, 1.5, 2.0, 3.0, 8.0, 15],
+        16: [16, 9.0, 2.0, 1.4, 1.4, 1.2, 1.1, 1.0, 0.5, 1.0, 1.1, 1.2, 1.4, 1.4, 2.0, 9.0, 16]
     },
     medium: {
-         8: [13, 3, 1.3, 0.7, 0.4, 0.7, 1.3, 3, 13],
-        12: [24, 6, 2, 1.4, 0.6, 0.4, 0.6, 1.4, 2, 6, 24],
-        16: [110, 41, 10, 5, 3, 1.5, 1, 0.5, 0.3, 0.5, 1, 1.5, 3, 5, 10, 41, 110]
+         8: [13, 3.0, 1.3, 0.7, 0.4, 0.7, 1.3, 3.0, 13],
+         9: [18, 4.0, 1.7, 0.9, 0.5, 0.5, 0.9, 1.7, 4.0, 18],
+        10: [22, 5.0, 2.0, 1.4, 0.6, 0.4, 0.6, 1.4, 2.0, 5.0, 22],
+        11: [24, 6.0, 3.0, 1.8, 0.7, 0.5, 0.5, 0.7, 1.8, 3.0, 6.0, 24],
+        12: [33, 11, 4.0, 2.0, 1.1, 0.6, 0.3, 0.6, 1.1, 2.0, 4.0, 11, 33],
+        13: [43, 13, 6.0, 3.0, 1.3, 0.7, 0.4, 0.4, 0.7, 1.3, 3.0, 6.0, 13, 43],
+        14: [58, 15, 7.0, 4.0, 1.9, 1.0, 0.5, 0.2, 0.5, 1.0, 1.9, 4.0, 7.0, 15, 58],
+        15: [88, 18, 11, 5.0, 2.0, 1.0, 0.5, 0.3, 0.3, 0.5, 1.0, 2.0, 5.0, 11, 18, 88],
+        16: [110, 41, 10, 5.0, 3.0, 1.5, 1.0, 0.5, 0.3, 0.5, 1.0, 1.5, 3.0, 5.0, 10, 41, 110]
     },
     high: {
-         8: [29, 4, 1.5, 0.3, 0.2, 0.3, 1.5, 4, 29],
-        12: [170, 24, 8.1, 2, 0.7, 0.2, 0.7, 2, 8.1, 24, 170],
-        16: [1000, 130, 26, 9, 4, 2, 0.2, 0.2, 0.2, 0.2, 0.2, 2, 4, 9, 26, 130, 1000]
+         8: [29, 4.0, 1.5, 0.3, 0.2, 0.3, 1.5, 4.0, 29],
+         9: [43, 7.0, 2.0, 0.6, 0.2, 0.2, 0.6, 2.0, 7.0, 43],
+        10: [76, 10, 3.0, 0.9, 0.3, 0.2, 0.3, 0.9, 3.0, 10, 76],
+        11: [120, 14, 5.2, 1.4, 0.4, 0.2, 0.2, 0.4, 1.4, 5.2, 14, 120],
+        12: [170, 24, 8.1, 2.0, 0.7, 0.2, 0.2, 0.2, 0.7, 2.0, 8.1, 24, 170],
+        13: [260, 37, 11, 4.0, 1.0, 0.2, 0.2, 0.2, 0.2, 1.0, 4.0, 11, 37, 260],
+        14: [420, 56, 18, 5.0, 1.9, 0.3, 0.2, 0.2, 0.3, 1.9, 5.0, 18, 56, 420],
+        15: [620, 83, 27, 8.0, 3.0, 0.5, 0.2, 0.2, 0.2, 0.5, 3.0, 8.0, 27, 83, 620],
+        16: [1000, 130, 26, 9.0, 4.0, 2.0, 0.2, 0.2, 0.2, 0.2, 0.2, 2.0, 4.0, 9.0, 26, 130, 1000]
     }
 };
 
@@ -477,10 +496,11 @@ app.post('/api/plinko', (req, res) => {
     const betAmt = parseFloat(bet) || 0;
     const bal = getBalance(wallet);
     if (betAmt < 0 || (betAmt > 0 && betAmt > bal)) return res.status(400).json({ error: 'Insufficient balance' });
-    const numRows = parseInt(rows) || 16;
-    const mults = PLINKO_MULTIPLIERS[risk]?.[numRows] || PLINKO_MULTIPLIERS.high[16];
+    const numRows = Math.min(Math.max(parseInt(rows) || 16, 8), 16);
+    const riskKey = ['low','medium','high'].includes(risk) ? risk : 'high';
+    const mults = PLINKO_MULTIPLIERS[riskKey][numRows];
 
-    // Build path: each step 0=left, 1=right; final pos = bucket index
+    // pos goes 0..numRows, giving numRows+1 buckets = mults.length
     const path = [];
     let pos = 0;
     for (let i = 0; i < numRows; i++) {
@@ -489,14 +509,15 @@ app.post('/api/plinko', (req, res) => {
         pos += go;
     }
 
-    const multiplier = mults[Math.min(pos, mults.length - 1)];
+    const bucketIdx = Math.min(pos, mults.length - 1);
+    const multiplier = mults[bucketIdx];
     const payout = parseFloat((betAmt * multiplier).toFixed(6));
     const delta = payout - betAmt;
 
     setBalance(wallet, bal + delta);
     addBet('Plinko', wallet, payout >= betAmt, betAmt, multiplier);
 
-    res.json({ multiplier, payout, delta: parseFloat(delta.toFixed(6)), balance: getBalance(wallet), path, bucketIdx: pos });
+    res.json({ multiplier, payout, delta: parseFloat(delta.toFixed(6)), balance: getBalance(wallet), path, bucketIdx });
 });
 
 

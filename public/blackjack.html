@@ -96,9 +96,8 @@
         .split-row { display: flex; gap: 32px; align-items: flex-start; justify-content: center; width: 100%; }
         .split-hand { display: flex; flex-direction: column; align-items: center; gap: 8px; }
         .split-hand .hand-zone { min-height: 150px; }
-        .split-arrow { width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-top: 20px solid #fff; opacity: 0; transition: opacity 0.2s; }
+        .split-arrow { width: 22px; height: 22px; background: #fff; border: 3px solid #000; border-radius: 4px; transform: rotate(45deg); opacity: 0; transition: opacity 0.2s; margin-bottom: 4px; }
         .split-arrow.active { opacity: 1; }
-        .split-arrow.done { opacity: 0; }
 
         /* ── Card base ── */
         .card {
@@ -233,8 +232,7 @@
                     </div>
                 </div>
             </div>
-            <a class="nav-tab" href="/">Casino</a>
-            <a class="nav-tab" href="#">Sports</a>
+
         </nav>
     </div>
     <div style="display:flex;align-items:center;gap:16px;">
@@ -249,7 +247,10 @@
     <div class="bet-panel">
         <div>
             <div class="section-title">Bet Amount</div>
-            <input type="number" class="bet-input" id="betAmount" value="0.0000" step="0.0001" min="0">
+            <div style="position:relative;">
+              <img src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;pointer-events:none;">
+              <input type="number" class="bet-input" id="betAmount" value="0.0000" step="0.0001" min="0" style="padding-left:38px;">
+            </div>
         </div>
         <div class="quick-bets">
             <button class="quick-bet" onclick="halveBet()">1/2</button>
@@ -406,7 +407,8 @@
     }
 
     function updateScores(hideDealer) {
-        const hand = isSplit ? splitHands[splitIndex] : playerHand;
+        const hand = isSplit ? (splitHands[splitIndex] || playerHand) : playerHand;
+        if (!hand || hand.length === 0) return;
         const pt = handTotal(hand);
         const pp = document.getElementById("playerScore");
         pp.textContent = pt;
@@ -465,15 +467,14 @@
         const row = document.getElementById("actionRow");
         if (visible) {
             row.classList.remove("hidden");
-            const hand = isSplit ? splitHands[splitIndex] : playerHand;
+            const hand = isSplit ? (splitHands[splitIndex] || []) : playerHand;
+            if (!hand || hand.length === 0) { row.classList.add("hidden"); return; }
             const bet = parseFloat(document.getElementById("betAmount").value) || 0;
-            // On split aces: one card only, no hit/double/split allowed
             const lockedAce = splitAces && hand.length === 2;
             document.getElementById("hitBtn").disabled    = lockedAce;
             document.getElementById("standBtn").disabled  = false;
-            document.getElementById("doubleBtn").disabled = lockedAce || hand.length !== 2 || balance < bet;
-            document.getElementById("splitBtn").disabled  = lockedAce || hand.length !== 2 || hand[0].r !== hand[1].r || balance < bet;
-            // Auto-stand after receiving the one card on split aces
+            document.getElementById("doubleBtn").disabled = isSplit || lockedAce || hand.length !== 2 || balance < bet;
+            document.getElementById("splitBtn").disabled  = isSplit || lockedAce || hand.length !== 2 || hand[0].r !== hand[1].r || balance < bet;
             if (lockedAce) setTimeout(() => stand(), 600);
         } else {
             row.classList.add("hidden");
@@ -507,7 +508,21 @@ function halveBet()  { const v = parseFloat(document.getElementById("betAmount")
         if (!walletConnected) { showToast("Connect wallet first", "error"); return; }
         if (gameInProgress) { showToast("Finish the current hand first", "error"); return; }
         const bet = parseFloat(document.getElementById("betAmount").value) || 0;
+        if (bet < 0.001) { showToast("Minimum bet is 0.001 SOL", "error"); return; }
         if (bet > balance) { showToast("Insufficient balance", "error"); return; }
+        // clear previous round cards
+        document.getElementById('dealerCards').innerHTML = '';
+        document.getElementById('playerCards').innerHTML = '';
+        document.getElementById('splitCards0').innerHTML = '';
+        document.getElementById('splitCards1').innerHTML = '';
+        document.getElementById('dealerScore').className = 'score-pill';
+        document.getElementById('playerScore').className = 'score-pill';
+        document.getElementById('splitScore0').className = 'score-pill';
+        document.getElementById('splitScore1').className = 'score-pill';
+        document.getElementById('splitArrow0').className = 'split-arrow';
+        document.getElementById('splitArrow1').className = 'split-arrow';
+        document.getElementById('normalPlayerZone').style.display = '';
+        document.getElementById('splitPlayerZone').style.display = 'none';
         const wallet = FreeDiceSolana.getPublicKey();
         fetch('/api/blackjack/deal', {
             method: 'POST',
@@ -515,115 +530,207 @@ function halveBet()  { const v = parseFloat(document.getElementById("betAmount")
             body: JSON.stringify({ wallet, bet })
         }).then(r => r.json()).then(data => {
             if (data.error) { showToast(data.error, 'error'); return; }
-            balance = data.balance;
-            updateBalance();
+            balance = data.balance; updateBalance();
             gameInProgress = true;
             playerHand = data.playerHand;
             dealerHand = [data.dealerUp, { r: '?', s: '?' }];
-            deck = []; isSplit = false; splitHands = []; splitIndex = 0; doubled = false; splitAces = false;
+            isSplit = false; splitHands = []; splitIndex = 0; doubled = false; splitAces = false;
             dealerHoleRevealed = false; doneHands = new Set();
             document.getElementById('resultBanner').textContent = '';
-            document.getElementById('resultBanner').className = 'result-banner';
-            saveSession();
             renderHands(true);
             document.getElementById('dealBtn').disabled = true;
             showActions(true);
-            if (data.naturalBJ) setTimeout(() => endRound(), 600);
+            if (data.naturalBJ) setTimeout(() => endRound(), 800);
         }).catch(e => showToast(e.message, 'error'));
     }
 
     function hit() {
-        const hand = isSplit ? splitHands[splitIndex] : playerHand;
-        hand.push(deck.pop());
-        saveSession();
-        renderHands(true);
-        if (handTotal(hand) > 21) {
-            if (isSplit && splitIndex === 1) {
-                doneHands.add(1);
-                splitIndex = 0;
-                renderHands(true);
-                showActions(true);
+        const wallet = FreeDiceSolana.getPublicKey();
+        showActions(false);
+        fetch('/api/blackjack/hit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ wallet })
+        }).then(r => r.json()).then(data => {
+            if (data.error) { showToast(data.error, 'error'); showActions(true); return; }
+            if (isSplit) {
+                splitHands[splitIndex] = data.hand;
+                if (data.nextSplit) {
+                    // busted hand 0, server moved to hand 1
+                    splitIndex = 1;
+                    splitHands[1] = data.currentHand;
+                    renderSplit();
+                    showActions(true);
+                } else if (data.bust) {
+                    renderSplit();
+                    setTimeout(() => endRound(null, true), 500);
+                } else if (data.autoStand) {
+                    renderSplit();
+                    setTimeout(() => stand(), 500);
+                } else {
+                    renderSplit();
+                    showActions(true);
+                }
             } else {
-                endRound();
-            }
-        } else if (handTotal(hand) === 21) {
-            if (isSplit && splitIndex === 1) {
-                doneHands.add(1);
-                splitIndex = 0;
+                playerHand = data.hand;
                 renderHands(true);
-                showActions(true);
-            } else {
-                showActions(false);
-                setTimeout(() => stand(), 600);
+                if (data.bust) setTimeout(() => endRound(null, true), 500);
+                else if (data.autoStand) setTimeout(() => stand(), 500);
+                else showActions(true);
             }
-        } else {
-            showActions(true);
-        }
+        }).catch(e => { showToast(e.message, 'error'); showActions(true); });
     }
 
     function stand() {
-        if (isSplit && splitIndex === 1) {
-            doneHands.add(1);
-            splitIndex = 0;
-            renderHands(true);
-            showActions(true);
-            return;
-        }
-        endRound();
-    }
-
-    function doubleDown() {
-        const bet = parseFloat(document.getElementById("betAmount").value) || 0;
-        balance -= bet;
-        document.getElementById("betAmount").value = (bet * 2).toFixed(4);
-        doubled = true;
-        const hand = isSplit ? splitHands[splitIndex] : playerHand;
-        hand.push(deck.pop());
-        renderHands(true);
-        if (isSplit && splitIndex === 1) {
-            doneHands.add(1);
-            splitIndex = 0;
-            renderHands(true);
-            showActions(true);
-        } else if (handTotal(hand) > 21) {
-            endRound();
-        } else {
-            stand();
-        }
-    }
-
-    function splitHand() {
-        const bet = parseFloat(document.getElementById("betAmount").value) || 0;
-        balance -= bet; updateBalance();
-        splitAces = playerHand[0].r === "A";
-        splitHands = [[playerHand[0], deck.pop()], [playerHand[1], deck.pop()]];
-        isSplit = true; splitIndex = 1;
-        saveSession(); // start on right hand (index 1)
-        renderHands(true);
-        showActions(true);
-    }
-
-    function endRound() {
-        showActions(false);
         const wallet = FreeDiceSolana.getPublicKey();
+        showActions(false);
         fetch('/api/blackjack/stand', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ wallet })
         }).then(r => r.json()).then(data => {
-            if (data.error) { showToast(data.error, 'error'); return; }
-            balance = data.balance;
-            updateBalance();
-            localStorage.removeItem('bj_session');
-            gameInProgress = false;
-            dealerHand = data.dealerHand;
-            renderHands(false, true);
+            if (data.error) { showToast(data.error, 'error'); showActions(true); return; }
+            if (data.nextSplit) {
+                // finished hand 0, server moved to hand 1
+                splitIndex = 1;
+                splitHands[1] = data.currentHand;
+                renderSplit();
+                showActions(true);
+            } else {
+                endRound(data);
+            }
+        }).catch(e => { showToast(e.message, 'error'); showActions(true); });
+    }
+
+    function doubleDown() {
+        const wallet = FreeDiceSolana.getPublicKey();
+        showActions(false);
+        fetch('/api/blackjack/double', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ wallet })
+        }).then(r => r.json()).then(data => {
+            if (data.error) { showToast(data.error, 'error'); showActions(true); return; }
+            // show the doubled hand first (before dealer reveal)
+            if (data.doubledHand) playerHand = data.doubledHand;
+            else if (data.playerHands && data.playerHands[0]) playerHand = data.playerHands[0];
+            renderHands(true);
+            // after short delay, reveal dealer and show result
+            setTimeout(() => endRound(data), 900);
+        }).catch(e => { showToast(e.message, 'error'); showActions(true); });
+    }
+
+    function splitHand() {
+        const wallet = FreeDiceSolana.getPublicKey();
+        showActions(false);
+        fetch('/api/blackjack/split', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ wallet })
+        }).then(r => r.json()).then(data => {
+            if (data.error) { showToast(data.error, 'error'); showActions(true); return; }
+            balance = data.balance; updateBalance();
+            isSplit = true;
+            splitIndex = 0; // server starts at index 0
+            splitHands = data.splitHands;
+            splitAces = splitHands[0][0].r === 'A';
+            document.getElementById('normalPlayerZone').style.display = 'none';
+            document.getElementById('splitPlayerZone').style.display = '';
+            renderSplit();
+            showActions(true);
+        }).catch(e => { showToast(e.message, 'error'); showActions(true); });
+    }
+
+    function renderSplit() {
+        splitHands.forEach((hand, hi) => {
+            const zone = document.getElementById('splitCards' + hi);
+            const scoreEl = document.getElementById('splitScore' + hi);
+            const arrowEl = document.getElementById('splitArrow' + hi);
+            zone.innerHTML = '';
+            hand.forEach((c, i) => zone.appendChild(makeCardEl(c, false, i * 60)));
+            const t = handTotal(hand);
+            scoreEl.textContent = t;
+            scoreEl.className = 'score-pill visible' + (t > 21 ? ' bust' : t === 21 && hand.length === 2 ? ' bj' : '');
+            arrowEl.className = 'split-arrow' + (hi === splitIndex ? ' active' : '');
+        });
+        const dp = document.getElementById('dealerScore');
+        dp.textContent = cardValue(dealerHand[0]);
+        dp.className = 'score-pill visible';
+        const dc = document.getElementById('dealerCards');
+        dc.innerHTML = '';
+        dealerHand.forEach((c, i) => dc.appendChild(makeCardEl(c, i === 1, i * 90)));
+    }
+
+    function endRound(data, playerBusted) {
+        if (!data) {
+            const wallet = FreeDiceSolana.getPublicKey();
+            const endpoint = playerBusted ? '/api/blackjack/bust' : '/api/blackjack/stand';
+            fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ wallet })
+            }).then(r => r.json()).then(d => endRound(d, playerBusted)).catch(e => showToast(e.message, 'error'));
+            return;
+        }
+        showActions(false);
+        balance = data.balance; updateBalance();
+        gameInProgress = false;
+        isSplit = false;
+        dealerHand = data.dealerHand;
+        if (data.playerHands && data.playerHands[0]) playerHand = data.playerHands[0];
+
+        // Step 1: flip dealer hole card — only show original 2 cards (no extra draws on bust)
+        const dc = document.getElementById('dealerCards');
+        dc.innerHTML = '';
+        const cardsToShow = playerBusted ? dealerHand.slice(0, 2) : dealerHand;
+        cardsToShow.forEach((c, i) => dc.appendChild(makeCardEl(c, false, 0, i === 1)));
+        const dt = handTotal(cardsToShow);
+        const dp = document.getElementById('dealerScore');
+        dp.textContent = dt;
+        dp.className = 'score-pill visible' + (dt > 21 ? ' bust' : dt === 21 && cardsToShow.length === 2 ? ' bj' : '');
+
+        // Step 2: show player final hand without touching dealer cards
+        if (isSplit) {
+            splitHands = data.playerHands || splitHands;
+            document.getElementById('normalPlayerZone').style.display = 'none';
+            document.getElementById('splitPlayerZone').style.display = '';
+            splitHands.forEach((hand, hi) => {
+                const zone = document.getElementById('splitCards' + hi);
+                const scoreEl = document.getElementById('splitScore' + hi);
+                zone.innerHTML = '';
+                hand.forEach((c, i) => zone.appendChild(makeCardEl(c, false, i * 60)));
+                const t = handTotal(hand);
+                scoreEl.textContent = t;
+                scoreEl.className = 'score-pill visible' + (t > 21 ? ' bust' : '');
+            });
+        } else {
+            const pc = document.getElementById('playerCards');
+            pc.innerHTML = '';
+            playerHand.forEach((c, i) => pc.appendChild(makeCardEl(c, false, i * 90)));
+            const pt = handTotal(playerHand);
+            const pp = document.getElementById('playerScore');
+            pp.textContent = pt;
+            pp.className = 'score-pill visible' + (pt > 21 ? ' bust' : '');
+        }
+        isSplit = false;
+
+        // Step 3: show result toast, re-enable deal immediately — cards clear on next deal
+        setTimeout(() => {
             const outcome = data.outcome;
+            // highlight scores
+            const pp = document.getElementById('playerScore');
+            const dp2 = document.getElementById('dealerScore');
+            if (outcome === 'win') { pp.className = 'score-pill visible win'; }
+            else if (outcome === 'lose') { pp.className = 'score-pill visible lose'; dp2.className = 'score-pill visible win'; }
             const bet = parseFloat(document.getElementById('betAmount').value) || 0;
-            const toastMsg = outcome === 'win' ? `+${formatSol(data.totalDelta - bet)}` :
-                outcome === 'lose' ? `-${formatSol(bet)}` : 'Push — bet returned';
-            showToast(toastMsg, outcome === 'win' ? 'success' : outcome === 'lose' ? 'error' : 'success');
-        }).catch(e => showToast(e.message, 'error'));
+            const delta = data.totalDelta ?? 0;
+            showToast(
+                outcome === 'win'  ? `+${formatSol(delta > bet ? delta - bet : delta)}` :
+                outcome === 'lose' ? `-${formatSol(bet)}` : 'Push — bet returned',
+                outcome === 'win' ? 'success' : outcome === 'lose' ? 'error' : 'success'
+            );
+            document.getElementById('dealBtn').disabled = false;
+        }, 1200);
     }
 
     window.addEventListener("load", async () => {

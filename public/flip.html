@@ -122,8 +122,7 @@
                         </div>
                     </div>
                 </div>
-                <a class="nav-tab" href="/">Casino</a>
-                <a class="nav-tab" href="#">Sports</a>
+
             </nav>
         </div>
         <div style="display:flex;align-items:center;gap:16px;">
@@ -139,7 +138,10 @@
         <div class="bet-panel">
             <div>
                 <div class="section-title">Bet Amount</div>
-                <input type="number" class="bet-input" id="betAmount" value="0.0000" step="0.0001" min="0">
+                <div style="position:relative;">
+                  <img src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;pointer-events:none;">
+                  <input type="number" class="bet-input" id="betAmount" value="0.0000" step="0.0001" min="0" style="padding-left:38px;">
+                </div>
             </div>
             <div class="quick-bets">
                 <button class="quick-bet" onclick="halveBet()">1/2</button>
@@ -222,6 +224,7 @@
             if (flipping) return;
 
             const bet = parseFloat(document.getElementById("betAmount").value) || 0;
+            if (bet < 0.001) { showToast("Minimum bet is 0.001 SOL", "error"); return; }
             if (bet > balance) { showToast("Insufficient balance", "error"); return; }
 
             flipping = true;

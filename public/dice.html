@@ -28,7 +28,7 @@
         .main-content { display: flex; height: calc(100vh - 78px); }
         .bet-panel { width: 280px; background: #1a1f2e; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
         .section-title { color: #8b949e; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-        .bet-input, .stat-input { background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 12px 16px; color: #fff; font-size: 16px; font-weight: 600; width: 100%; }
+        .bet-input, .stat-input { background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 12px 16px; color: #fff; font-size: 16px; font-weight: 600; width: 100%; font-family: "Inter", sans-serif; }
         .bet-input:focus, .stat-input:focus { outline: none; border-color: #1e40af; box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1); }
         .quick-bets { display: flex; gap: 8px; }
         .quick-bet { flex: 1; background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 10px; color: #8b949e; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.2s ease; }
@@ -76,8 +76,7 @@
                         </div>
                     </div>
                 </div>
-                <a class="nav-tab" href="/">Casino</a>
-                <a class="nav-tab" href="#">Sports</a>
+
             </nav>
         </div>
         <div style="display:flex;align-items:center;gap:16px;">
@@ -90,7 +89,10 @@
         <div class="bet-panel">
             <div>
                 <div class="section-title">Bet Amount</div>
-                <input type="number" class="bet-input" id="betAmount" value="0.0000" step="0.0001">
+                <div style="position:relative;">
+                  <img src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;border-radius:50%;pointer-events:none;">
+                  <input type="number" class="bet-input" id="betAmount" value="0.0000" step="0.0001" style="padding-left:38px;">
+                </div>
             </div>
             <div class="quick-bets">
                 <button class="quick-bet" onclick="halveBet()">1/2</button>
@@ -245,6 +247,7 @@
             if (!walletConnected) { showToast("Connect wallet first", "error"); return; }
 
             const bet = parseFloat(document.getElementById("betAmount").value) || 0;
+            if (bet < 0.001) { showToast("Minimum bet is 0.001 SOL", "error"); return; }
             if (bet > balance) { showToast("Insufficient balance", "error"); return; }
             const btn = document.getElementById("rollBtn");
             btn.disabled = true;
