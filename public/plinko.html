@@ -7,60 +7,54 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: "Inter", sans-serif; background: #0a0e13; color: #fff; min-height: 100vh; overflow: hidden; }
-.header { padding: 0 24px; background: #1a1f2e; display: flex; justify-content: space-between; align-items: center; height: 78px; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: "Inter", sans-serif; background: #0a0e13; color: #fff; display: flex; flex-direction: column; }
+
+.header { padding: 16px 24px; background: #1a1f2e; display: flex; justify-content: space-between; align-items: center; height: 78px; flex-shrink: 0; }
 .logo-link { display: inline-flex; align-items: center; text-decoration: none; }
 .logo-img { height: 72px; width: auto; display: block; }
 .header-left { display: flex; align-items: center; }
 .nav-tabs { display: flex; align-items: center; gap: 4px; margin-left: 24px; }
-.nav-tab { display: inline-flex; align-items: center; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #8b949e; text-decoration: none; border: none; background: none; cursor: pointer; transition: all 0.15s; position: relative; }
+.nav-tab { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #8b949e; text-decoration: none; border: none; background: none; cursor: pointer; transition: all 0.15s; position: relative; }
 .nav-tab:hover { background: #2a2f3e; color: #fff; }
 .nav-tab .dropdown { display: none; position: absolute; top: 100%; left: 0; padding-top: 8px; min-width: 160px; z-index: 100; }
 .nav-tab:hover .dropdown { display: flex; flex-direction: column; }
 .dropdown-inner { background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 10px; padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: flex; flex-direction: column; }
 .dropdown-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 7px; color: #cdd5e0; font-size: 14px; font-weight: 600; text-decoration: none; transition: background 0.15s; }
 .dropdown-item:hover { background: #2a2f3e; color: #fff; }
-.balance-display { background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 10px 18px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; color: #fff; height: 44px; }
-.connect-btn { background: #1e40af; border: none; border-radius: 8px; padding: 10px 22px; color: #fff; font-weight: 600; cursor: pointer; font-size: 15px; height: 44px; transition: background 0.2s; }
-.connect-btn:hover { background: #1d4ed8; }
+.balance-display { background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 12px 24px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 16px; color: #fff; height: 48px; }
+.deposit-btn { background: #1e40af; border: none; border-radius: 8px; padding: 12px 24px; color: #fff; font-weight: 600; cursor: pointer; font-size: 16px; transition: all 0.2s ease; height: 48px; }
+.deposit-btn:hover { background: #1d4ed8; }
 
-.main-content { display: flex; height: calc(100vh - 78px); }
-
-/* Bet Panel */
+.main-content { display: flex; flex: 1; min-height: 0; }
 .bet-panel { width: 280px; background: #1a1f2e; padding: 24px; display: flex; flex-direction: column; gap: 20px; flex-shrink: 0; overflow-y: auto; }
-.section-label { color: #8b949e; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-.bet-input-wrap { display: flex; align-items: center; background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 0 12px; height: 44px; gap: 8px; }
-.bet-input-wrap span { color: #8b949e; font-size: 13px; }
-.bet-input { background: none; border: none; color: #fff; font-size: 15px; font-weight: 600; width: 100%; outline: none; font-family: inherit; }
+.section-title { color: #8b949e; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.bet-input { background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 12px 16px; color: #fff; font-size: 16px; font-weight: 600; width: 100%; font-family: inherit; outline: none; }
+.bet-input:focus { border-color: #1e40af; box-shadow: 0 0 0 3px rgba(30,64,175,0.1); }
 .quick-bets { display: flex; gap: 8px; }
-.quick-bet { flex: 1; background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 8px; color: #8b949e; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.15s; }
+.quick-bet { flex: 1; background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 10px; color: #8b949e; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.2s ease; }
 .quick-bet:hover { background: #3a3f4e; color: #fff; }
-
-/* Risk selector */
 .risk-btns { display: flex; background: #2a2f3e; border-radius: 8px; padding: 4px; gap: 2px; }
 .risk-btn { flex: 1; padding: 8px; border: none; border-radius: 6px; background: none; color: #8b949e; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; font-family: inherit; }
 .risk-btn.active { background: #1e40af; color: #fff; }
-
-/* Rows slider */
-.rows-header { display: flex; justify-content: space-between; align-items: center; }
+.rows-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .rows-val { font-size: 14px; font-weight: 800; color: #fff; }
 input[type=range] { width: 100%; accent-color: #3b82f6; cursor: pointer; }
+.drop-btn { background: #1e40af; border: none; border-radius: 8px; padding: 20px; color: #fff; font-weight: 700; font-size: 18px; cursor: pointer; margin-top: auto; transition: all 0.2s ease; text-transform: uppercase; letter-spacing: 0.5px; }
+.drop-btn:hover:not(:disabled) { background: #1d4ed8; transform: translateY(-1px); }
+.drop-btn:disabled { background: #4a5568; cursor: not-allowed; transform: none; }
 
-.drop-btn { background: linear-gradient(135deg, #1e40af, #3b82f6); border: none; border-radius: 8px; padding: 16px; color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; margin-top: auto; transition: opacity 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
-.drop-btn:hover:not(:disabled) { opacity: 0.85; }
-.drop-btn:disabled { background: #4a5568; cursor: not-allowed; }
-
-/* Game area */
-.game-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; position: relative; overflow: hidden; background: #0a0e13; }
+.game-area { flex: 1; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; background: #0d1117; }
 canvas { display: block; }
 
 .toast { position: fixed; top: 92px; right: 20px; background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 8px; padding: 12px 16px; color: #fff; font-size: 14px; font-weight: 500; z-index: 1000; animation: slideIn 0.3s ease-out; }
-.toast.success { border-color: #48bb78; background: rgba(72,187,120,0.08); }
+.toast.success { border-color: #48bb78; background: rgba(72,187,120,0.1); }
 .toast.error { border-color: #f56565; background: rgba(245,101,101,0.1); }
-@keyframes slideIn { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 </style>
 </head>
 <body>
+
 <header class="header">
   <div class="header-left">
     <a class="logo-link" href="/"><img class="logo-img" src="/assets/Free Dice.png" alt="FreeDice"></a>
@@ -77,31 +71,28 @@ canvas { display: block; }
       <a class="nav-tab" href="#">Sports</a>
     </nav>
   </div>
-  <div style="display:flex;align-items:center;gap:12px;">
+  <div style="display:flex;align-items:center;gap:16px;">
     <div class="balance-display">
       <img src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png" style="width:18px;height:18px;border-radius:50%;flex-shrink:0;">
       <span id="balDisplay">0.0000 SOL</span>
     </div>
-    <button class="connect-btn" id="connectBtn">Connect Wallet</button>
+    <button class="deposit-btn" id="connectBtn">Connect Wallet</button>
   </div>
 </header>
 
 <div class="main-content">
   <div class="bet-panel">
     <div>
-      <div class="section-label">Bet Amount</div>
-      <div class="bet-input-wrap">
-        <span>◎</span>
-        <input class="bet-input" id="betAmount" type="number" value="0.0000" step="0.0001" min="0">
-      </div>
+      <div class="section-title">Bet Amount</div>
+      <input class="bet-input" id="betAmount" type="number" value="0.0000" step="0.0001" min="0">
     </div>
     <div class="quick-bets">
-      <button class="quick-bet" onclick="halveBet()">½</button>
+      <button class="quick-bet" onclick="halveBet()">1/2</button>
       <button class="quick-bet" onclick="doubleBet()">2x</button>
       <button class="quick-bet" onclick="maxBet()">MAX</button>
     </div>
     <div>
-      <div class="section-label">Risk</div>
+      <div class="section-title">Risk</div>
       <div class="risk-btns">
         <button class="risk-btn" onclick="setRisk('low',this)">Low</button>
         <button class="risk-btn" onclick="setRisk('medium',this)">Medium</button>
@@ -110,15 +101,15 @@ canvas { display: block; }
     </div>
     <div>
       <div class="rows-header">
-        <div class="section-label" style="margin:0;">Rows</div>
+        <div class="section-title" style="margin:0;">Rows</div>
         <div class="rows-val" id="rowsVal">16</div>
       </div>
       <input type="range" id="rowsSlider" min="8" max="16" value="16" oninput="updateRows(this.value)">
     </div>
-    <button class="drop-btn" id="dropBtn" onclick="dropBall()">Drop Ball</button>
+    <button class="drop-btn" id="dropBtn" onclick="dropBall()">Drop</button>
   </div>
 
-  <div class="game-area">
+  <div class="game-area" id="gameArea">
     <canvas id="plinkoCanvas"></canvas>
   </div>
 </div>
@@ -127,199 +118,295 @@ canvas { display: block; }
 <script src="/js/solana.js"></script>
 <script>
 let balance = 0, walletConnected = false, rows = 16, risk = 'high';
-let balls = [], pegs = [], buckets = [], dropping = false;
+let balls = [], pegs = [], buckets = [];
 
 const canvas = document.getElementById('plinkoCanvas');
-const ctx = canvas.getContext('2d');
+const ctx    = canvas.getContext('2d');
+const gameArea = document.getElementById('gameArea');
 
-// Multiplier tables per risk
+// 98% RTP — weighted average of (mult * probability) = 0.98
+// Probabilities follow binomial distribution for each row count
 const MULTIPLIERS = {
-  low:    { 8:[5.6,2.1,1.1,1,0.5,1,1.1,2.1,5.6], 12:[8.9,3,1.4,1.1,1,0.5,1,1.1,1.4,3,8.9], 16:[15,8,3,1.5,1.1,1,0.5,0.3,0.5,1,1.1,1.5,3,8,15] },
-  medium: { 8:[13,3,1.3,0.7,0.4,0.7,1.3,3,13], 12:[24,6,2,1.4,0.6,0.4,0.6,1.4,2,6,24], 16:[110,41,10,5,3,1.5,1,0.5,0.3,0.5,1,1.5,3,5,10,41,110] },
-  high:   { 8:[29,4,1.5,0.3,0.2,0.3,1.5,4,29], 12:[170,24,8.1,2,0.7,0.2,0.7,2,8.1,24,170], 16:[1000,130,26,9,4,2,0.2,0.2,0.2,0.2,0.2,2,4,9,26,130,1000] }
+  low: {
+     8: [5.6, 2.1, 1.1, 1.0, 0.5, 1.0, 1.1, 2.1, 5.6],
+    12: [8.9, 3.0, 1.4, 1.1, 1.0, 0.5, 1.0, 1.1, 1.4, 3.0, 8.9],
+    16: [16, 9, 2, 1.4, 1.4, 1.2, 1.1, 1.0, 0.5, 1.0, 1.1, 1.2, 1.4, 1.4, 2, 9, 16]
+  },
+  medium: {
+     8: [13, 3, 1.3, 0.7, 0.4, 0.7, 1.3, 3, 13],
+    12: [24, 6, 2, 1.4, 0.6, 0.4, 0.6, 1.4, 2, 6, 24],
+    16: [110, 41, 10, 5, 3, 1.5, 1, 0.5, 0.3, 0.5, 1, 1.5, 3, 5, 10, 41, 110]
+  },
+  high: {
+     8: [29, 4, 1.5, 0.3, 0.2, 0.3, 1.5, 4, 29],
+    12: [170, 24, 8.1, 2, 0.7, 0.2, 0.7, 2, 8.1, 24, 170],
+    16: [1000, 130, 26, 9, 4, 2, 0.2, 0.2, 0.2, 0.2, 0.2, 2, 4, 9, 26, 130, 1000]
+  }
 };
 
-function getBucketColor(mult) {
-  if (mult >= 100) return '#ef4444';
-  if (mult >= 20)  return '#f97316';
-  if (mult >= 5)   return '#f59e0b';
-  if (mult >= 2)   return '#eab308';
-  if (mult >= 1)   return '#84cc16';
-  return '#22c55e';
+// Bucket color: green center → red edges (like shuffle/chips.gg)
+function getBucketColor(idx, total) {
+  const mid = (total - 1) / 2;
+  const t = Math.abs(idx - mid) / mid; // 0 = center, 1 = edge
+  // green #22c55e → yellow #eab308 → red #ef4444
+  let r, g, b;
+  if (t < 0.5) {
+    const s = t * 2;
+    r = Math.round(34  + (234 - 34)  * s);
+    g = Math.round(197 + (179 - 197) * s);
+    b = Math.round(94  - 94          * s);
+  } else {
+    const s = (t - 0.5) * 2;
+    r = Math.round(234 + (239 - 234) * s);
+    g = Math.round(179 - 179         * s);
+    b = 0;
+  }
+  return `rgb(${r},${g},${b})`;
 }
 
-function resize() {
-  const area = canvas.parentElement;
-  const W = Math.min(area.clientWidth - 40, 700);
-  const H = area.clientHeight - 40;
-  canvas.width = W;
-  canvas.height = H;
-  buildBoard();
+let GW, GH, spacing, pegR, ballR, rowSpacing, boardTop, bucketH, bucketGap;
+
+function computeGeometry() {
+  GW = canvas.width;
+  GH = canvas.height;
+  // square grid: spacing same in both axes
+  const cols = rows + 2;
+  spacing    = Math.min(GW / cols, (GH * 0.82) / rows);
+  pegR       = Math.max(4, Math.min(7, spacing * 0.15));
+  ballR      = pegR * 1.6;
+  bucketH    = Math.max(26, Math.min(36, spacing * 0.9));
+  bucketGap  = 2;
+  rowSpacing = spacing;          // square: row gap = col gap
+  const totalGridH = rows * rowSpacing + bucketH + pegR * 4;
+  boardTop   = (GH - totalGridH) / 2 + pegR * 2;
 }
 
 function buildBoard() {
   pegs = []; buckets = [];
+  computeGeometry();
   const mults = MULTIPLIERS[risk][rows] || MULTIPLIERS[risk][16];
-  const bucketCount = mults.length;
-  const W = canvas.width, H = canvas.height;
-  const pegR = 5;
-  const boardH = H * 0.82;
-  const boardTop = H * 0.04;
-  const colSpacing = W / (rows + 2);
-  const rowSpacing = boardH / (rows + 1);
 
   for (let r = 0; r < rows; r++) {
     const count = r + 3;
-    const totalW = (count - 1) * colSpacing;
-    const startX = (W - totalW) / 2;
+    const totalW = (count - 1) * spacing;
+    const startX = (GW - totalW) / 2;
     for (let c = 0; c < count; c++) {
-      pegs.push({ x: startX + c * colSpacing, y: boardTop + r * rowSpacing, r: pegR });
+      pegs.push({ x: startX + c * spacing, y: boardTop + r * rowSpacing, flash: 0 });
     }
   }
 
-  const bW = W / (bucketCount + 1);
-  const bH = 28;
-  const bY = H - bH - 4;
-  const totalBW = bucketCount * bW;
-  const bStartX = (W - totalBW) / 2;
-  for (let i = 0; i < bucketCount; i++) {
-    buckets.push({ x: bStartX + i * bW, y: bY, w: bW - 2, h: bH, mult: mults[i] });
+  const bCount  = mults.length;
+  const totalBW = bCount * spacing;
+  const bStartX = (GW - totalBW) / 2;
+  const bY      = boardTop + rows * rowSpacing + pegR * 0.5 + 10;
+  const bH      = Math.max(24, Math.min(34, spacing * 0.85));
+  for (let i = 0; i < bCount; i++) {
+    buckets.push({
+      x: bStartX + i * spacing + bucketGap / 2,
+      y: bY,
+      w: spacing - bucketGap,
+      h: bH,
+      mult: mults[i], idx: i, total: bCount, flash: 0
+    });
   }
 }
 
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+function drawBucket(b) {
+  const col = getBucketColor(b.idx, b.total);
+  const flash = b.flash > 0;
+  const x = b.x, y = b.y, w = b.w, h = b.h;
+  const r = Math.min(6, w * 0.18, h * 0.4);
 
-  // Pegs
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  ctx.fillStyle = flash ? '#fff' : col;
+  ctx.fill();
+
+  const fs = Math.max(6, Math.min(11, w * 0.32));
+  ctx.font = `700 ${fs}px Inter`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = flash ? col : '#fff';
+  ctx.fillText('x' + b.mult, x + w / 2, y + h / 2);
+
+  if (b.flash > 0) b.flash--;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, GW, GH);
+
+  ctx.fillStyle = '#ffffff';
   pegs.forEach(p => {
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fillStyle = '#3d4f6e';
+    ctx.arc(p.x, p.y, p.flash > 0 ? pegR * 1.35 : pegR, 0, Math.PI * 2);
+    ctx.fillStyle = p.flash > 0 ? '#93c5fd' : '#ffffff';
     ctx.fill();
+    if (p.flash > 0) p.flash--;
   });
 
-  // Buckets
-  buckets.forEach(b => {
-    ctx.fillStyle = getBucketColor(b.mult);
-    ctx.beginPath();
-    ctx.roundRect(b.x, b.y, b.w, b.h, 4);
-    ctx.fill();
-    ctx.fillStyle = '#000';
-    ctx.font = 'bold 11px Inter';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const label = b.mult >= 1 ? b.mult + 'x' : b.mult + 'x';
-    ctx.fillText(label, b.x + b.w / 2, b.y + b.h / 2);
-  });
+  buckets.forEach(drawBucket);
 
-  // Balls
+  // ball — solid blue circle
   balls.forEach(b => {
     ctx.beginPath();
-    ctx.arc(b.x, b.y, 8, 0, Math.PI * 2);
-    ctx.fillStyle = b.color || '#3b82f6';
+    ctx.arc(b.x, b.y, ballR, 0, Math.PI * 2);
+    ctx.fillStyle = '#3b82f6';
     ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
   });
 }
 
-function physicsStep() {
-  const gravity = 0.4;
-  const friction = 0.6;
+// Build realistic peg-collision waypoints
+// Ball falls toward each peg, hits the surface, deflects off
+function buildWaypoints(serverPath) {
+  const safe = Array.isArray(serverPath) ? serverPath : [];
+  const pts = [];
+  let col = 0;
+
+  // start: drop from top center
+  pts.push({ x: GW / 2, y: boardTop - rowSpacing, cx: null, cy: null });
+
+  for (let r = 0; r < rows; r++) {
+    const dir    = safe[r] !== undefined ? safe[r] : (Math.random() < 0.5 ? 1 : 0);
+    const count  = r + 3;
+    const startX = (GW - (count - 1) * spacing) / 2;
+    const pegX   = startX + col * spacing;
+    const pegY   = boardTop + r * rowSpacing;
+    const prev   = pts[pts.length - 1];
+
+    // contact point: ball hits peg on the left or right side of its surface
+    // dir=1 (go right): ball hits left side of peg, deflects right
+    // dir=0 (go left):  ball hits right side of peg, deflects left
+    const contactAngle = dir === 1 ? -Math.PI * 0.35 : -Math.PI * 0.65; // angle from peg center
+    const contactX = pegX + Math.cos(contactAngle) * (pegR + ballR * 0.5);
+    const contactY = pegY + Math.sin(contactAngle) * (pegR + ballR * 0.5);
+
+    // bezier approach: curve from prev toward contact point
+    pts.push({
+      x: contactX, y: contactY,
+      cx: prev.x + (contactX - prev.x) * 0.5,
+      cy: prev.y + (contactY - prev.y) * 0.15
+    });
+
+    // exit point: deflect away from peg
+    const exitX = pegX + (dir === 1 ? spacing * 0.5 : -spacing * 0.5);
+    const exitY = pegY + rowSpacing * 0.45;
+    pts.push({ x: exitX, y: exitY, cx: null, cy: null });
+
+    col += dir;
+  }
+
+  const bi  = Math.min(col, buckets.length - 1);
+  const bkt = buckets[bi];
+  if (bkt) pts.push({ x: bkt.x + bkt.w / 2, y: bkt.y + bkt.h * 0.5, cx: null, cy: null });
+  return { pts, bucketIdx: bi };
+}
+
+let animRunning = false;
+
+function physicsTick() {
+  if (balls.length === 0) { animRunning = false; return; }
+  animRunning = true;
 
   balls.forEach(ball => {
     if (ball.done) return;
-    ball.vy += gravity;
-    ball.x += ball.vx;
-    ball.y += ball.vy;
 
-    // Peg collision
-    pegs.forEach(p => {
-      const dx = ball.x - p.x, dy = ball.y - p.y;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist < p.r + 8) {
-        const nx = dx / dist, ny = dy / dist;
-        const dot = ball.vx * nx + ball.vy * ny;
-        ball.vx = (ball.vx - 2 * dot * nx) * friction + (Math.random() - 0.5) * 1.5;
-        ball.vy = (ball.vy - 2 * dot * ny) * friction;
-        ball.x = p.x + nx * (p.r + 8 + 1);
-        ball.y = p.y + ny * (p.r + 8 + 1);
+    ball.t += 0.065;
+    if (ball.t >= 1) {
+      ball.t = 0;
+      ball.seg++;
+      // flash the peg when ball arrives at it (every other point is a peg)
+      if (ball.seg < ball.pts.length && ball.seg % 2 === 1) {
+        const pt = ball.pts[ball.seg];
+        const closest = pegs.reduce((best, p) => {
+          const d = Math.hypot(p.x - pt.x, p.y - pt.y);
+          return d < best.d ? { p, d } : best;
+        }, { p: null, d: Infinity });
+        if (closest.p && closest.d < spacing * 0.6) closest.p.flash = 6;
       }
-    });
-
-    // Wall bounce
-    if (ball.x < 8) { ball.x = 8; ball.vx = Math.abs(ball.vx); }
-    if (ball.x > canvas.width - 8) { ball.x = canvas.width - 8; ball.vx = -Math.abs(ball.vx); }
-
-    // Bucket landing
-    buckets.forEach(b => {
-      if (!ball.done && ball.y + 8 >= b.y && ball.x >= b.x && ball.x <= b.x + b.w) {
+      if (ball.seg >= ball.pts.length - 1) {
         ball.done = true;
-        ball.y = b.y - 8;
-        ball.vx = 0; ball.vy = 0;
-        ball.landedMult = b.mult;
-        ball.color = getBucketColor(b.mult);
+        ball.x = ball.pts[ball.pts.length - 1].x;
+        ball.y = ball.pts[ball.pts.length - 1].y;
+        const bkt = buckets[ball.bucketIdx];
+        if (bkt) bkt.flash = 20;
+        draw();
         setTimeout(() => {
           balls = balls.filter(bb => bb !== ball);
+          draw();
           if (ball.bet > 0) {
-            const win = parseFloat((ball.bet * ball.landedMult).toFixed(6));
-            balance = parseFloat((balance + win).toFixed(6));
+            const win = parseFloat((ball.bet * ball.mult).toFixed(6));
+            balance   = parseFloat((balance + win).toFixed(6));
             updateBalance();
-            showToast(win > ball.bet ? `+${(win - ball.bet).toFixed(4)} SOL (${ball.landedMult}x)` : `-${(ball.bet - win).toFixed(4)} SOL (${ball.landedMult}x)`, win >= ball.bet ? 'success' : 'error');
-          } else {
-            showToast(`${ball.landedMult}x`, 'success');
+            showToast(
+              win >= ball.bet
+                ? `+${(win - ball.bet).toFixed(4)} SOL (${ball.mult}x)`
+                : `-${(ball.bet - win).toFixed(4)} SOL (${ball.mult}x)`,
+              win >= ball.bet ? 'success' : 'error'
+            );
           }
-          if (balls.length === 0) dropping = false;
-        }, 600);
+          document.getElementById('dropBtn').disabled = false;
+        }, 300);
+        return;
       }
-    });
+    }
+
+    const a  = ball.pts[ball.seg];
+    const b2 = ball.pts[ball.seg + 1];
+
+    // use quadratic bezier if control point defined, else ease-in linear
+    if (b2.cx !== null) {
+      const u = 1 - ball.t;
+      ball.x = u*u*a.x + 2*u*ball.t*b2.cx + ball.t*ball.t*b2.x;
+      ball.y = u*u*a.y + 2*u*ball.t*b2.cy + ball.t*ball.t*b2.y;
+    } else {
+      // ease-in for gravity feel on straight segments
+      const e = ball.t * ball.t;
+      ball.x = a.x + (b2.x - a.x) * e;
+      ball.y = a.y + (b2.y - a.y) * e;
+    }
   });
 
   draw();
-  if (balls.length > 0) requestAnimationFrame(physicsStep);
-  else { draw(); dropping = false; }
+  requestAnimationFrame(physicsTick);
 }
 
 async function dropBall() {
   if (!walletConnected) { showToast('Connect wallet first', 'error'); return; }
   const bet = parseFloat(document.getElementById('betAmount').value) || 0;
-  if (bet > balance) { showToast('Insufficient balance', 'error'); return; }
-
-  dropping = true;
+  if (bet > 0 && bet > balance) { showToast('Insufficient balance', 'error'); return; }
   document.getElementById('dropBtn').disabled = true;
-
   try {
     const wallet = FreeDiceSolana.getPublicKey();
-    const res = await fetch('/api/plinko', {
+    const res  = await fetch('/api/plinko', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ wallet, bet, rows, risk })
     });
     const data = await res.json();
-    if (data.error) { showToast(data.error, 'error'); dropping = false; document.getElementById('dropBtn').disabled = false; return; }
-
+    if (data.error) { showToast(data.error, 'error'); document.getElementById('dropBtn').disabled = false; return; }
     balance = data.balance;
     updateBalance();
-
-    const W = canvas.width;
+    const { pts, bucketIdx } = buildWaypoints(data.path);
     const ball = {
-      x: W / 2 + (Math.random() - 0.5) * 4,
-      y: 20,
-      vx: (Math.random() - 0.5) * 1.5,
-      vy: 1,
-      done: false,
-      bet,
-      targetMult: data.multiplier,
-      color: '#3b82f6'
+      x: pts[0].x, y: pts[0].y,
+      pts, bucketIdx,
+      seg: 0, t: 0,
+      bet, mult: data.multiplier,
+      done: false
     };
     balls.push(ball);
-    requestAnimationFrame(physicsStep);
-
-    setTimeout(() => { document.getElementById('dropBtn').disabled = false; }, 800);
+    if (!animRunning) requestAnimationFrame(physicsTick);
   } catch(e) {
     showToast(e.message || 'Failed', 'error');
-    dropping = false;
     document.getElementById('dropBtn').disabled = false;
   }
 }
@@ -351,6 +438,14 @@ function showToast(msg, type) {
   setTimeout(() => t.remove(), 3000);
 }
 
+function resize() {
+  const rect = gameArea.getBoundingClientRect();
+  canvas.width  = Math.floor(rect.width  * 0.88);
+  canvas.height = Math.floor(rect.height * 0.94);
+  buildBoard();
+  draw();
+}
+
 window.addEventListener('load', async () => {
   await FreeDiceSolana.initSolana();
   const btn = document.getElementById('connectBtn');
@@ -376,10 +471,9 @@ window.addEventListener('load', async () => {
     } catch(e) { btn.textContent = 'Connect Wallet'; }
   });
   resize();
-  draw();
 });
 
-window.addEventListener('resize', () => { resize(); draw(); });
+window.addEventListener('resize', resize);
 </script>
 </body>
 </html>

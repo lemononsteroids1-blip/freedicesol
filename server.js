@@ -289,14 +289,41 @@ app.post('/api/blackjack/double', (req, res) => {
     if (!session || session.done) return res.status(400).json({ error: 'No active session' });
 
     const bal = getBalance(wallet);
-    if (bal < session.bet) return res.status(400).json({ error: 'Insufficient balance to double' });
+    const originalBet = session.bet;
+    if (bal < originalBet) return res.status(400).json({ error: 'Insufficient balance to double' });
 
-    setBalance(wallet, bal - session.bet);
-    session.bet *= 2;
+    setBalance(wallet, bal - originalBet);
+    session.bet = originalBet * 2;
 
     const hand = session.splitHands ? session.splitHands[session.splitIndex] : session.playerHand;
     hand.push(session.deck.pop());
-    return resolveRound(wallet, session, res);
+    const total = handTotal(hand);
+
+    // Return card so client shows it, then resolve immediately
+    return resolveRound(wallet, session, res, hand);
+});
+
+app.post('/api/blackjack/bust', (req, res) => {
+    const { wallet } = req.body;
+    const session = bjSessions.get(wallet);
+    if (!session || session.done) return res.status(400).json({ error: 'No active session' });
+    // Player busted — settle immediately, no dealer draw
+    const hands = session.splitHands || [session.playerHand];
+    const totalDelta = 0; // player busted, loses everything
+    const bal = getBalance(wallet);
+    setBalance(wallet, bal + totalDelta);
+    session.done = true;
+    saveState();
+    hands.forEach(hand => addBet('Blackjack', wallet, false, session.bet / hands.length, 0));
+    res.json({
+        dealerHand: session.dealerHand,
+        dealerTotal: handTotal(session.dealerHand),
+        playerHands: hands,
+        playerTotals: hands.map(handTotal),
+        outcome: 'lose',
+        totalDelta: 0,
+        balance: getBalance(wallet)
+    });
 });
 
 app.post('/api/blackjack/split', (req, res) => {
@@ -318,7 +345,7 @@ app.post('/api/blackjack/split', (req, res) => {
     res.json({ splitHands: session.splitHands, totals: session.splitHands.map(handTotal), balance: getBalance(wallet) });
 });
 
-function resolveRound(wallet, session, res) {
+function resolveRound(wallet, session, res, doubledHand) {
     // Dealer hits soft 17 (house edge for ~98% RTP)
     while (handTotal(session.dealerHand) < 17 ||
            (handTotal(session.dealerHand) === 17 && session.dealerHand.some(c => c.r === 'A') && handTotal(session.dealerHand) <= 17)) {
@@ -382,7 +409,8 @@ function resolveRound(wallet, session, res) {
         playerTotals: hands.map(handTotal),
         outcome,
         totalDelta: parseFloat(totalDelta.toFixed(6)),
-        balance: getBalance(wallet)
+        balance: getBalance(wallet),
+        doubledHand: doubledHand || null
     });
 }
 
@@ -426,9 +454,21 @@ app.post('/api/flip', (req, res) => {
 
 // ── Plinko ───────────────────────────────────────────────────────────────────
 const PLINKO_MULTIPLIERS = {
-    low:    { 8:[5.6,2.1,1.1,1,0.5,1,1.1,2.1,5.6], 12:[8.9,3,1.4,1.1,1,0.5,1,1.1,1.4,3,8.9], 16:[15,8,3,1.5,1.1,1,0.5,0.3,0.5,1,1.1,1.5,3,8,15] },
-    medium: { 8:[13,3,1.3,0.7,0.4,0.7,1.3,3,13], 12:[24,6,2,1.4,0.6,0.4,0.6,1.4,2,6,24], 16:[110,41,10,5,3,1.5,1,0.5,0.3,0.5,1,1.5,3,5,10,41,110] },
-    high:   { 8:[29,4,1.5,0.3,0.2,0.3,1.5,4,29], 12:[170,24,8.1,2,0.7,0.2,0.7,2,8.1,24,170], 16:[1000,130,26,9,4,2,0.2,0.2,0.2,0.2,0.2,2,4,9,26,130,1000] }
+    low: {
+         8: [5.6, 2.1, 1.1, 1.0, 0.5, 1.0, 1.1, 2.1, 5.6],
+        12: [8.9, 3.0, 1.4, 1.1, 1.0, 0.5, 1.0, 1.1, 1.4, 3.0, 8.9],
+        16: [16, 9, 2, 1.4, 1.4, 1.2, 1.1, 1.0, 0.5, 1.0, 1.1, 1.2, 1.4, 1.4, 2, 9, 16]
+    },
+    medium: {
+         8: [13, 3, 1.3, 0.7, 0.4, 0.7, 1.3, 3, 13],
+        12: [24, 6, 2, 1.4, 0.6, 0.4, 0.6, 1.4, 2, 6, 24],
+        16: [110, 41, 10, 5, 3, 1.5, 1, 0.5, 0.3, 0.5, 1, 1.5, 3, 5, 10, 41, 110]
+    },
+    high: {
+         8: [29, 4, 1.5, 0.3, 0.2, 0.3, 1.5, 4, 29],
+        12: [170, 24, 8.1, 2, 0.7, 0.2, 0.7, 2, 8.1, 24, 170],
+        16: [1000, 130, 26, 9, 4, 2, 0.2, 0.2, 0.2, 0.2, 0.2, 2, 4, 9, 26, 130, 1000]
+    }
 };
 
 app.post('/api/plinko', (req, res) => {
@@ -436,13 +476,19 @@ app.post('/api/plinko', (req, res) => {
     if (!wallet) return res.status(400).json({ error: 'wallet required' });
     const betAmt = parseFloat(bet) || 0;
     const bal = getBalance(wallet);
-    if (betAmt < 0 || betAmt > bal) return res.status(400).json({ error: 'Insufficient balance' });
-    let pos = 0;
+    if (betAmt < 0 || (betAmt > 0 && betAmt > bal)) return res.status(400).json({ error: 'Insufficient balance' });
     const numRows = parseInt(rows) || 16;
-    for (let i = 0; i < numRows; i++) {
-        pos += crypto.randomInt(0, 2); // 0 = left, 1 = right
-    }
     const mults = PLINKO_MULTIPLIERS[risk]?.[numRows] || PLINKO_MULTIPLIERS.high[16];
+
+    // Build path: each step 0=left, 1=right; final pos = bucket index
+    const path = [];
+    let pos = 0;
+    for (let i = 0; i < numRows; i++) {
+        const go = crypto.randomInt(0, 2);
+        path.push(go);
+        pos += go;
+    }
+
     const multiplier = mults[Math.min(pos, mults.length - 1)];
     const payout = parseFloat((betAmt * multiplier).toFixed(6));
     const delta = payout - betAmt;
@@ -450,7 +496,7 @@ app.post('/api/plinko', (req, res) => {
     setBalance(wallet, bal + delta);
     addBet('Plinko', wallet, payout >= betAmt, betAmt, multiplier);
 
-    res.json({ multiplier, payout, delta: parseFloat(delta.toFixed(6)), balance: getBalance(wallet) });
+    res.json({ multiplier, payout, delta: parseFloat(delta.toFixed(6)), balance: getBalance(wallet), path, bucketIdx: pos });
 });
 
 
