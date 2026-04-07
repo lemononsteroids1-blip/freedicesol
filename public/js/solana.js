@@ -194,12 +194,27 @@
         const tx = new solanaWeb3.Transaction();
         instructions.forEach(ix => tx.add(ix));
         tx.feePayer = state.publicKey;
-        const { blockhash, lastValidBlockHeight } = await state.connection.getLatestBlockhash('finalized');
-        tx.recentBlockhash = blockhash;
+        // Get blockhash via server proxy to avoid CORS 403
+        const bh = await fetch('/api/blockhash').then(r => r.json());
+        if (bh.error) throw new Error(bh.error);
+        tx.recentBlockhash = bh.blockhash;
         const signed = await state.wallet.signTransaction(tx);
-        const sig    = await state.connection.sendRawTransaction(signed.serialize(), { skipPreflight: false });
-        await state.connection.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, 'confirmed');
-        return sig;
+        const txBase64 = Buffer.from(signed.serialize()).toString('base64');
+        // Send via server proxy
+        const sent = await fetch('/api/send-tx', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tx: txBase64 })
+        }).then(r => r.json());
+        if (sent.error) throw new Error(sent.error);
+        // Confirm via server proxy
+        const confirmed = await fetch('/api/confirm-tx', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sig: sent.sig, blockhash: bh.blockhash, lastValidBlockHeight: bh.lastValidBlockHeight })
+        }).then(r => r.json());
+        if (confirmed.error) throw new Error(confirmed.error);
+        return sent.sig;
     }
 
     function _memoIx(obj) {

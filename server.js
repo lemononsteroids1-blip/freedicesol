@@ -269,6 +269,31 @@ app.get('/api/config', (req, res) => {
     res.json({ cluster: CLUSTER, rpcUrl: RPC_URL, treasury: TREASURY });
 });
 
+// ── RPC proxy — all Solana RPC calls go through server to avoid CORS 403s ────
+app.get('/api/blockhash', async (req, res) => {
+    try {
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('finalized');
+        res.json({ blockhash, lastValidBlockHeight });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/send-tx', async (req, res) => {
+    try {
+        const { tx: txBase64 } = req.body;
+        const buf = Buffer.from(txBase64, 'base64');
+        const sig = await connection.sendRawTransaction(buf, { skipPreflight: false });
+        res.json({ sig });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post('/api/confirm-tx', async (req, res) => {
+    try {
+        const { sig, blockhash, lastValidBlockHeight } = req.body;
+        await connection.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, 'confirmed');
+        res.json({ confirmed: true });
+    } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
 // ── Balance proxy — avoids browser CORS issues with RPC endpoints ─────────────
 app.get('/api/sol-balance/:wallet', async (req, res) => {
     try {
