@@ -36,7 +36,24 @@
 
     async function initSolana() {
         await loadConfig();
-        state.connection = new solanaWeb3.Connection(state.rpcUrl, 'confirmed');
+        // Try multiple public RPCs for tx sending — wallet provider handles signing
+        const rpcs = state.cluster === 'mainnet-beta'
+            ? [
+                'https://rpc.ankr.com/solana',
+                'https://mainnet.helius-rpc.com/?api-key=15319bf2-6d8c-4e58-a8e5-f95f0e650b3e',
+                'https://api.mainnet-beta.solana.com'
+              ]
+            : ['https://api.devnet.solana.com'];
+        for (const rpc of rpcs) {
+            try {
+                const conn = new solanaWeb3.Connection(rpc, 'confirmed');
+                await conn.getLatestBlockhash('finalized');
+                state.connection = conn;
+                console.log('Using RPC:', rpc);
+                break;
+            } catch (_) {}
+        }
+        if (!state.connection) state.connection = new solanaWeb3.Connection(rpcs[rpcs.length - 1], 'confirmed');
         await _tryAutoConnect();
     }
 
