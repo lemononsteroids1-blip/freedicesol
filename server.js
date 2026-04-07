@@ -392,8 +392,7 @@ app.post('/api/blackjack/deal', async (req, res) => {
         playerHand, dealerUp: dealerHand[0], playerTotal,
         dealerVisible: cardValue(dealerHand[0]),
         offerInsurance: dealerHand[0].r === 'A',
-        naturalBJ: playerTotal === 21,
-        balance: betAmt
+        naturalBJ: playerTotal === 21
     });
 });
 

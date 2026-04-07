@@ -541,9 +541,9 @@ function halveBet()  { const v = parseFloat(document.getElementById("betAmount")
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ wallet, bet, sig })
-        }).then(r => r.json()).then(data => {
-            if (data.error) { showToast(data.error, 'error'); return; }
-            balance = data.balance; updateBalance();
+        }).then(r => r.json()).then(async data => {
+            if (data.error) { showToast(data.error, 'error'); document.getElementById('dealBtn').textContent = 'Deal'; document.getElementById('dealBtn').disabled = false; return; }
+            balance = await FreeDiceSolana.getSolBalance(); updateBalance();
             gameInProgress = true;
             playerHand = data.playerHand;
             dealerHand = [data.dealerUp, { r: '?', s: '?' }];

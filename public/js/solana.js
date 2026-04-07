@@ -6,56 +6,10 @@
         connection: null,
         wallet: null,
         publicKey: null,
-        cluster: 'devnet',
+        cluster: 'mainnet-beta',
         treasury: null
     };
 
-    async function loadConfig() {
-        try {
-            const res = await fetch('/api/config');
-            const cfg = await res.json();
-            if (cfg.cluster) state.cluster = cfg.cluster;
-            if (cfg.treasury) state.treasury = new solanaWeb3.PublicKey(cfg.treasury);
-        } catch (_) {
-            state.treasury = new solanaWeb3.PublicKey('11111111111111111111111111111111');
-        }
-    }
-
-    async function initSolana() {
-        await loadConfig();
-        const rpcUrl = state.cluster === 'mainnet-beta'
-            ? 'https://api.mainnet-beta.solana.com'
-            : state.cluster === 'testnet'
-            ? 'https://api.testnet.solana.com'
-            : 'https://api.devnet.solana.com';
-        state.connection = new solanaWeb3.Connection(rpcUrl, 'confirmed');
-        // Try silent reconnect if user connected before
-        await _tryAutoConnect();
-    }
-
-    async function _tryAutoConnect() {
-        const savedName = localStorage.getItem('fd_wallet');
-        if (!savedName) return;
-        const entry = WALLET_REGISTRY.find(w => w.name === savedName);
-        if (!entry) return;
-        const provider = entry.detect();
-        if (!provider) return;
-        try {
-            const resp = await provider.connect({ onlyIfTrusted: true });
-            if (!resp?.publicKey) return;
-            state.wallet = provider;
-            state.publicKey = resp.publicKey;
-            localStorage.setItem('fd_pubkey', state.publicKey.toBase58());
-        } catch (_) {
-            // Not pre-approved — restore publicKey from localStorage so balance still loads
-            const saved = localStorage.getItem('fd_pubkey');
-            if (saved) {
-                try { state.publicKey = new solanaWeb3.PublicKey(saved); } catch (_) {}
-            }
-        }
-    }
-
-    // ── Wallet registry (same wallets solpump supports) ───────────────────────
     const WALLET_REGISTRY = [
         {
             name: 'Phantom',
@@ -111,6 +65,62 @@
         return WALLET_REGISTRY.filter(w => w.detect() !== null);
     }
 
+    async function loadConfig() {
+        try {
+            const res = await fetch('/api/config');
+            const cfg = await res.json();
+            if (cfg.cluster) state.cluster = cfg.cluster;
+            if (cfg.treasury) state.treasury = new solanaWeb3.PublicKey(cfg.treasury);
+        } catch (_) {
+            state.treasury = new solanaWeb3.PublicKey('11111111111111111111111111111111');
+        }
+    }
+
+    function _makeConnection() {
+        // Use a reliable public RPC — fallback chain so we always get a connection
+        const rpc = state.cluster === 'mainnet-beta'
+            ? 'https://solana-mainnet.g.alchemy.com/v2/demo'
+            : state.cluster === 'testnet'
+            ? 'https://api.testnet.solana.com'
+            : 'https://api.devnet.solana.com';
+        // Use the standard public endpoint as primary, alchemy as backup
+        const mainnetRpc = 'https://api.mainnet-beta.solana.com';
+        return new solanaWeb3.Connection(
+            state.cluster === 'mainnet-beta' ? mainnetRpc : rpc,
+            { commitment: 'confirmed', disableRetryOnRateLimit: false }
+        );
+    }
+
+    async function initSolana() {
+        await loadConfig();
+        state.connection = _makeConnection();
+        await _tryAutoConnect();
+    }
+
+    async function _tryAutoConnect() {
+        const savedName = localStorage.getItem('fd_wallet');
+        if (!savedName) return;
+        const entry = WALLET_REGISTRY.find(w => w.name === savedName);
+        if (!entry) return;
+        const provider = entry.detect();
+        if (!provider) return;
+        try {
+            // Try silent connect (onlyIfTrusted = don't show popup)
+            const resp = await provider.connect({ onlyIfTrusted: true });
+            if (!resp?.publicKey) return;
+            state.wallet = provider;
+            state.publicKey = resp.publicKey;
+            localStorage.setItem('fd_pubkey', state.publicKey.toBase58());
+        } catch (_) {
+            // Wallet not pre-approved — still restore publicKey so balance shows,
+            // but wallet stays null so betting will prompt connect first
+            const saved = localStorage.getItem('fd_pubkey');
+            if (saved) {
+                try { state.publicKey = new solanaWeb3.PublicKey(saved); } catch (_) {}
+            }
+        }
+    }
+
     // ── Modal ─────────────────────────────────────────────────────────────────
     function _injectStyles() {
         if (document.getElementById('wam-styles')) return;
@@ -142,7 +152,6 @@
             _injectStyles();
             const detected = _getDetected();
             const undetected = WALLET_REGISTRY.filter(w => w.detect() === null);
-
             const overlay = document.createElement('div');
             overlay.id = 'wam-overlay';
             overlay.innerHTML = `
@@ -170,23 +179,17 @@
                     <div id="wam-footer">New to Solana? <a href="https://phantom.app" target="_blank">Get Phantom →</a></div>
                 </div>
             `;
-
             document.body.appendChild(overlay);
-
             overlay.querySelectorAll('.wam-item').forEach(el => {
                 el.addEventListener('click', () => {
                     const name = el.dataset.wallet;
                     const entry = WALLET_REGISTRY.find(w => w.name === name);
                     const provider = entry?.detect();
-                    if (!provider) {
-                        window.open(el.dataset.url, '_blank');
-                        return;
-                    }
+                    if (!provider) { window.open(el.dataset.url, '_blank'); return; }
                     overlay.remove();
                     resolve({ provider, name });
                 });
             });
-
             document.getElementById('wam-close').addEventListener('click', () => {
                 overlay.remove();
                 reject(new Error('User closed wallet modal'));
@@ -201,7 +204,6 @@
 
     async function connectWallet() {
         const detected = _getDetected();
-
         let provider, name;
         if (detected.length === 1) {
             provider = detected[0].detect();
@@ -211,29 +213,53 @@
             provider = result.provider;
             name = result.name;
         }
-
         localStorage.setItem('fd_wallet', name);
         state.wallet = provider;
         const resp = await provider.connect();
         state.publicKey = resp.publicKey;
-
         const addr = state.publicKey.toBase58();
         localStorage.setItem('fd_pubkey', addr);
         const short = addr.slice(0, 4) + '...' + addr.slice(-4);
-
         document.querySelectorAll('[data-wallet-btn]').forEach(btn => {
             btn.textContent = short;
             btn.classList.add('connected');
         });
-
         return addr;
+    }
+
+    // If wallet was restored from localStorage but state.wallet is null,
+    // prompt the user to re-approve before sending a tx
+    async function _ensureWallet() {
+        if (state.wallet && state.publicKey) return;
+        if (!state.publicKey) throw new Error('Connect wallet first.');
+        // publicKey exists but wallet provider not connected — re-connect silently
+        const savedName = localStorage.getItem('fd_wallet');
+        const entry = savedName ? WALLET_REGISTRY.find(w => w.name === savedName) : null;
+        const provider = entry?.detect();
+        if (!provider) throw new Error('Connect wallet first.');
+        const resp = await provider.connect();
+        state.wallet = provider;
+        state.publicKey = resp.publicKey;
     }
 
     function getPublicKey() {
         return state.publicKey ? state.publicKey.toBase58() : null;
     }
 
+    function isConnected() {
+        return !!state.publicKey;
+    }
+
+    async function getSolBalance() {
+        if (!state.publicKey) return 0;
+        try {
+            const lamports = await state.connection.getBalance(state.publicKey, 'confirmed');
+            return lamports / LAMPORTS_PER_SOL;
+        } catch (_) { return 0; }
+    }
+
     async function _sendTx(instructions) {
+        await _ensureWallet();
         const tx = new solanaWeb3.Transaction();
         instructions.forEach(ix => tx.add(ix));
         tx.feePayer = state.publicKey;
@@ -254,7 +280,7 @@
     }
 
     async function placeBetOnChain(gameName, amountSol, payload = {}) {
-        if (!state.wallet || !state.publicKey) throw new Error('Connect wallet first.');
+        await _ensureWallet();
         if (!state.treasury) throw new Error('Treasury not configured.');
         const lamports = Math.floor(amountSol * LAMPORTS_PER_SOL);
         const ixs = [];
@@ -267,7 +293,6 @@
         }
         ixs.push(_memoIx({ game: gameName, type: 'bet', amountSol, ...payload }));
         const sig = await _sendTx(ixs);
-        // Credit balance on server after confirmed on-chain deposit
         if (lamports > 0) {
             const r = await fetch('/api/deposit', {
                 method: 'POST',
@@ -282,7 +307,7 @@
     }
 
     async function settleBetOnChain(gameName, betSig, won, multiplier, amountSol) {
-        if (!state.wallet || !state.publicKey) throw new Error('Connect wallet first.');
+        await _ensureWallet();
         try {
             const resp = await fetch('/api/settle', {
                 method: 'POST',
@@ -295,16 +320,6 @@
             }
         } catch (_) {}
         return _sendTx([_memoIx({ game: gameName, type: 'settle', betSig, won, multiplier, amountSol })]);
-    }
-
-    async function getSolBalance() {
-        if (!state.publicKey) return 0;
-        const lamports = await state.connection.getBalance(state.publicKey, 'confirmed');
-        return lamports / LAMPORTS_PER_SOL;
-    }
-
-    function isConnected() {
-        return !!state.publicKey;
     }
 
     window.FreeDiceSolana = { initSolana, connectWallet, isConnected, getPublicKey, placeBetOnChain, settleBetOnChain, getSolBalance };
