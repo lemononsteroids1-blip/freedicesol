@@ -258,6 +258,17 @@
         }
         ixs.push(_memoIx({ game: gameName, type: 'bet', amountSol, ...payload }));
         const sig = await _sendTx(ixs);
+        // Credit balance on server after confirmed on-chain deposit
+        if (lamports > 0) {
+            const r = await fetch('/api/deposit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ wallet: state.publicKey.toBase58(), sig })
+            });
+            const d = await r.json();
+            if (d.error) throw new Error(d.error);
+            return { sig, lamports, balance: d.balance };
+        }
         return { sig, lamports };
     }
 

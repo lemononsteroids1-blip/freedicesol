@@ -5,12 +5,30 @@ const crypto = require('crypto');
 const http = require('http');
 const WebSocket = require('ws');
 const fs = require('fs');
+const { Connection, PublicKey, Keypair, SystemProgram, Transaction, LAMPORTS_PER_SOL, sendAndConfirmTransaction } = require('@solana/web3.js');
+const bs58 = require('bs58');
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 const PORT = process.env.PORT || 3000;
+const CLUSTER = process.env.SOLANA_CLUSTER || 'mainnet-beta';
+const RPC_URL = process.env.RPC_URL || (CLUSTER === 'mainnet-beta' ? 'https://api.mainnet-beta.solana.com' : `https://api.${CLUSTER}.solana.com`);
+const connection = new Connection(RPC_URL, 'confirmed');
+
+// House keypair — set HOUSE_KEYPAIR env var as base58 private key
+let houseKeypair = null;
+try {
+    if (process.env.HOUSE_KEYPAIR) {
+        houseKeypair = Keypair.fromSecretKey(bs58.decode(process.env.HOUSE_KEYPAIR));
+        console.log('House keypair loaded:', houseKeypair.publicKey.toBase58());
+    } else {
+        console.warn('HOUSE_KEYPAIR not set — payouts disabled');
+    }
+} catch(e) {
+    console.error('Invalid HOUSE_KEYPAIR:', e.message);
+}
 
 app.use(express.json());
 app.use(express.static('public'));
@@ -43,8 +61,8 @@ function saveState() {
 
 const { balances, bjSessions } = loadState();
 
-// Treasury wallet — set TREASURY_WALLET env var in production
-const TREASURY = process.env.TREASURY_WALLET || '11111111111111111111111111111111';
+// Treasury wallet — must match houseKeypair public key in production
+const TREASURY = houseKeypair ? houseKeypair.publicKey.toBase58() : (process.env.TREASURY_WALLET || '11111111111111111111111111111111');
 
 function getBalance(wallet) { return balances.get(wallet) ?? 0; }
 function setBalance(wallet, v) { balances.set(wallet, Math.max(0, parseFloat(v.toFixed(6)))); saveState(); }
@@ -147,9 +165,39 @@ app.get('/api/balance/:wallet', (req, res) => {
 // ── Config ───────────────────────────────────────────────────────────────────
 app.get('/api/config', (req, res) => {
     res.json({
-        cluster: process.env.SOLANA_CLUSTER || 'devnet',
+        cluster: CLUSTER,
         treasury: TREASURY
     });
+});
+
+// ── Deposit: verify on-chain tx and credit balance ───────────────────────────
+const processedTxs = new Set();
+app.post('/api/deposit', async (req, res) => {
+    const { wallet, sig } = req.body;
+    if (!wallet || !sig) return res.status(400).json({ error: 'wallet and sig required' });
+    if (processedTxs.has(sig)) return res.status(400).json({ error: 'Transaction already processed' });
+    try {
+        const tx = await connection.getParsedTransaction(sig, { maxSupportedTransactionVersion: 0, commitment: 'confirmed' });
+        if (!tx) return res.status(400).json({ error: 'Transaction not found' });
+        // Find SOL transfer to treasury
+        let depositLamports = 0;
+        for (const ix of tx.transaction.message.instructions) {
+            if (ix.program === 'system' && ix.parsed?.type === 'transfer') {
+                if (ix.parsed.info.destination === TREASURY && ix.parsed.info.source === wallet) {
+                    depositLamports += ix.parsed.info.lamports;
+                }
+            }
+        }
+        if (depositLamports <= 0) return res.status(400).json({ error: 'No valid transfer found' });
+        const depositSol = depositLamports / LAMPORTS_PER_SOL;
+        processedTxs.add(sig);
+        const bal = getBalance(wallet);
+        setBalance(wallet, bal + depositSol);
+        console.log(`Deposit: ${wallet.slice(0,8)} +${depositSol} SOL (sig: ${sig.slice(0,16)})`);
+        res.json({ credited: depositSol, balance: getBalance(wallet) });
+    } catch(e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // ── Recent bets feed ─────────────────────────────────────────────────────────
@@ -521,11 +569,31 @@ app.post('/api/plinko', (req, res) => {
 });
 
 
-app.post('/api/settle', (req, res) => {
-    const { player, game, betSig, won, multiplier, amountSol } = req.body;
-    console.log(`SETTLE: ${game} player=${player?.slice(0,8)} won=${won} mult=${multiplier} bet=${amountSol}`);
-    // In production: house keypair signs a payout transaction here
-    res.json({ settleSig: null, treasury: TREASURY });
+app.post('/api/settle', async (req, res) => {
+    const { player, game, won, multiplier, amountSol } = req.body;
+    if (!won || !amountSol || amountSol <= 0) return res.json({ settleSig: null });
+    if (!houseKeypair) {
+        console.warn('Payout skipped — HOUSE_KEYPAIR not set');
+        return res.json({ settleSig: null });
+    }
+    try {
+        const payoutSol = parseFloat((amountSol * multiplier).toFixed(9));
+        const lamports = Math.floor(payoutSol * LAMPORTS_PER_SOL);
+        if (lamports <= 0) return res.json({ settleSig: null });
+        const tx = new Transaction().add(
+            SystemProgram.transfer({
+                fromPubkey: houseKeypair.publicKey,
+                toPubkey: new PublicKey(player),
+                lamports
+            })
+        );
+        const sig = await sendAndConfirmTransaction(connection, tx, [houseKeypair]);
+        console.log(`Payout: ${game} ${player.slice(0,8)} ${payoutSol} SOL sig=${sig.slice(0,16)}`);
+        res.json({ settleSig: sig });
+    } catch(e) {
+        console.error('Payout failed:', e.message);
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // ── Pages ────────────────────────────────────────────────────────────────────
