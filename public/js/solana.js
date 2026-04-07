@@ -229,6 +229,9 @@
         await ensureWallet();
         if (!state.treasury) throw new Error('Treasury not configured.');
         const lamports = Math.floor(amountSol * LAMPORTS_PER_SOL);
+        // Reserve 0.002 SOL for rent exemption + fees
+        const bal = await getSolBalance();
+        if (lamports > 0 && (bal - amountSol) < 0.002) throw new Error('Insufficient balance (need 0.002 SOL reserve for fees/rent)');
         const ixs = [];
         if (lamports > 0) {
             ixs.push(solanaWeb3.SystemProgram.transfer({ fromPubkey: state.publicKey, toPubkey: state.treasury, lamports }));

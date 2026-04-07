@@ -484,7 +484,7 @@
 
 function halveBet()  { const v = parseFloat(document.getElementById("betAmount").value)||0; document.getElementById("betAmount").value=(v/2).toFixed(4); }
     function doubleBet() { const v = parseFloat(document.getElementById("betAmount").value)||0; document.getElementById("betAmount").value=Math.min(v*2,balance).toFixed(4); }
-    function maxBet()    { document.getElementById("betAmount").value = Math.max(0, balance - 0.001).toFixed(4); }
+    function maxBet()    { document.getElementById("betAmount").value = Math.max(0, balance - 0.002).toFixed(4); }
 
     function updateBalance() {
         document.getElementById("balance").textContent = formatSol(balance);
