@@ -503,9 +503,11 @@ function halveBet()  { const v = parseFloat(document.getElementById("betAmount")
     }
 
     async function deal() {
+        try { await FreeDiceSolana.ensureWallet(); } catch(e) { showToast(e.message || 'Connect wallet first', 'error'); return; }
         const addr = FreeDiceSolana.getPublicKey();
-        if (!addr) { showToast("Connect wallet first", "error"); return; }
         walletConnected = true;
+        document.getElementById('walletBtn').textContent = addr.slice(0,4)+'...'+addr.slice(-4);
+        if (!balance) { balance = await FreeDiceSolana.getSolBalance(); updateBalance(); }
         if (gameInProgress) { showToast("Finish the current hand first", "error"); return; }
         const bet = parseFloat(document.getElementById("betAmount").value) || 0;
         if (bet < 0) { showToast("Invalid bet amount", "error"); return; }
@@ -757,6 +759,7 @@ function halveBet()  { const v = parseFloat(document.getElementById("betAmount")
             balance = await FreeDiceSolana.getSolBalance();
             updateBalance();
             loadSession();
+            setInterval(async () => { if (FreeDiceSolana.isConnected()) { balance = await FreeDiceSolana.getSolBalance(); updateBalance(); } }, 8000);
         }
     });
 </script>

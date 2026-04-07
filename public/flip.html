@@ -232,7 +232,6 @@
             if (bet > balance) { showToast("Insufficient balance", "error"); return; }
 
             flipping = true;
-            const btn = document.getElementById("flipBtn");
             btn.disabled = true;
 
             const coin = document.getElementById("coin");
@@ -311,6 +310,7 @@
                 balance = await FreeDiceSolana.getSolBalance();
                 updateBalance();
             }
+            setInterval(async () => { if (FreeDiceSolana.isConnected()) { balance = await FreeDiceSolana.getSolBalance(); updateBalance(); } }, 8000);
             updatePayout();
         });
     </script>

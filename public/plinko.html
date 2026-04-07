@@ -497,6 +497,7 @@ window.addEventListener('load', async () => {
     btn.textContent = addr.slice(0,4) + '...' + addr.slice(-4);
     walletConnected = true;
     await loadBalance();
+    setInterval(async () => { if (FreeDiceSolana.isConnected()) { balance = await FreeDiceSolana.getSolBalance(); updateBalance(); } }, 8000);
   }
   btn.addEventListener('click', async () => {
     if (walletConnected) return;

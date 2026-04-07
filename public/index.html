@@ -250,7 +250,8 @@ setInterval(loadBets, 5000);
 
 // Live bets via WebSocket
 try {
-  const ws = new WebSocket(`ws://${location.host}`);
+  const wsProto = location.protocol === 'https:' ? 'wss' : 'ws';
+  const ws = new WebSocket(`${wsProto}://${location.host}`);
   ws.onmessage = e => {
     const d = JSON.parse(e.data);
     if (d.type === 'bet') {

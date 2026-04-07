@@ -13,9 +13,10 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 const PORT = process.env.PORT || 3000;
-const CLUSTER = process.env.SOLANA_CLUSTER || 'mainnet-beta';
-const RPC_URL = process.env.RPC_URL || (CLUSTER === 'mainnet-beta' ? 'https://api.mainnet-beta.solana.com' : `https://api.${CLUSTER}.solana.com`);
+const CLUSTER = process.env.SOLANA_CLUSTER || 'devnet';
+const RPC_URL = process.env.RPC_URL || `https://api.${CLUSTER}.solana.com`;
 const connection = new Connection(RPC_URL, 'confirmed');
+console.log(`Cluster: ${CLUSTER} | RPC: ${RPC_URL}`);
 
 // House keypair — set HOUSE_KEYPAIR env var as base58 private key
 let houseKeypair = null;
@@ -265,10 +266,7 @@ app.post('/api/withdraw', async (req, res) => {
 
 // ── Config ───────────────────────────────────────────────────────────────────
 app.get('/api/config', (req, res) => {
-    res.json({
-        cluster: CLUSTER,
-        treasury: TREASURY
-    });
+    res.json({ cluster: CLUSTER, rpcUrl: RPC_URL, treasury: TREASURY });
 });
 
 // ── Deposit: verify on-chain tx and credit balance ───────────────────────────

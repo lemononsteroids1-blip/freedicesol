@@ -281,6 +281,7 @@
                 showToast(e.message || "Roll failed", "error");
             } finally {
                 btn.disabled = false;
+                btn.textContent = 'Roll';
             }
         }
 
@@ -314,6 +315,8 @@
                 balance = await FreeDiceSolana.getSolBalance();
                 updateBalance();
             }
+            // live balance poll every 8s
+            setInterval(async () => { if (FreeDiceSolana.isConnected()) { balance = await FreeDiceSolana.getSolBalance(); updateBalance(); } }, 8000);
             const ref = new URLSearchParams(location.search).get('ref') || localStorage.getItem('fd_ref');
             if (ref && wallet) fetch('/api/referral/register', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ wallet, ref }) });
             updateStats();
