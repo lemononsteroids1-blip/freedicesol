@@ -405,12 +405,11 @@ function lockControls(locked) {
 async function dropBall() {
   const dropBtn = document.getElementById('dropBtn');
   if (dropBtn.disabled) return;
-  const bet = parseFloat(document.getElementById('betAmount').value) || 0;
-  if (bet < 0) { showToast('Invalid bet amount', 'error'); return; }
-  if (bet > 0 && bet < 0.001) { showToast('Minimum bet is 0.001 SOL', 'error'); return; }
-  if (bet > balance) { showToast('Insufficient balance', 'error'); return; }
   const wallet = FreeDiceSolana.getPublicKey();
-  if (!wallet) { showToast('Connect wallet first', 'error'); return; }
+  if (!FreeDiceSolana.isConnected()) {
+    try { await FreeDiceSolana.ensureWallet(); walletConnected = true; const addr = FreeDiceSolana.getPublicKey(); document.getElementById('connectBtn').textContent = addr.slice(0,4)+'...'+addr.slice(-4); await loadBalance(); } catch(e) { showToast(e.message||'Connect wallet first','error'); return; }
+  }
+  const bet = parseFloat(document.getElementById('betAmount').value) || 0;
   dropBtn.disabled = true;
   try {
     let sig = null;

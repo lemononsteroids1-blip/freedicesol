@@ -220,10 +220,12 @@
         function handleFlipBtn() { runFlip(); }
 
         async function runFlip() {
-            if (!walletConnected && !FreeDiceSolana.isConnected()) { showToast("Connect wallet first", "error"); return; }
-            if (!walletConnected) walletConnected = true;
             if (flipping) return;
-
+            const btn = document.getElementById("flipBtn");
+            if (!FreeDiceSolana.isConnected()) {
+                try { await FreeDiceSolana.ensureWallet(); walletConnected = true; const addr = FreeDiceSolana.getPublicKey(); document.getElementById("walletBtn").textContent = addr.slice(0,4)+'...'+addr.slice(-4); balance = await FreeDiceSolana.getSolBalance(); updateBalance(); } catch(e) { showToast(e.message||'Connect wallet first','error'); return; }
+            }
+            if (!walletConnected) walletConnected = true;
             const bet = parseFloat(document.getElementById("betAmount").value) || 0;
             if (bet < 0) { showToast("Invalid bet amount", "error"); return; }
             if (bet > 0 && bet < 0.001) { showToast("Minimum bet is 0.001 SOL", "error"); return; }

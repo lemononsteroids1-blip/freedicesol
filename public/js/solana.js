@@ -333,5 +333,5 @@
         return _sendTx([_memoIx({ game: gameName, type: 'settle', betSig, won, multiplier, amountSol })]);
     }
 
-    window.FreeDiceSolana = { initSolana, connectWallet, isConnected, getPublicKey, placeBetOnChain, settleBetOnChain, getSolBalance };
+    window.FreeDiceSolana = { initSolana, connectWallet, isConnected, getPublicKey, placeBetOnChain, settleBetOnChain, getSolBalance, ensureWallet: _ensureWallet };
 })();
