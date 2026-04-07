@@ -215,7 +215,7 @@
 
         function halveBet()  { const v = parseFloat(document.getElementById("betAmount").value)||0; document.getElementById("betAmount").value=(v/2).toFixed(4); updatePayout(); }
         function doubleBet() { const v = parseFloat(document.getElementById("betAmount").value)||0; document.getElementById("betAmount").value=Math.min(v*2,balance).toFixed(4); updatePayout(); }
-        function maxBet()    { document.getElementById("betAmount").value=balance.toFixed(4); updatePayout(); }
+        function maxBet()    { document.getElementById("betAmount").value = Math.max(0, balance - 0.001).toFixed(4); updatePayout(); }
 
         function handleFlipBtn() { runFlip(); }
 
