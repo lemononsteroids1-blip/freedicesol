@@ -280,7 +280,7 @@ app.get('/api/blockhash', async (req, res) => {
 app.post('/api/send-tx', async (req, res) => {
     try {
         const { tx: txBase64 } = req.body;
-        const buf = Buffer.from(txBase64, 'base64');
+        const buf = Uint8Array.from(Buffer.from(txBase64, 'base64'));
         const sig = await connection.sendRawTransaction(buf, { skipPreflight: false });
         res.json({ sig });
     } catch(e) { res.status(500).json({ error: e.message }); }

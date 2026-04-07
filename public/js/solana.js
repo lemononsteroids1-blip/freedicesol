@@ -199,7 +199,7 @@
         if (bh.error) throw new Error(bh.error);
         tx.recentBlockhash = bh.blockhash;
         const signed = await state.wallet.signTransaction(tx);
-        const txBase64 = Buffer.from(signed.serialize()).toString('base64');
+        const txBase64 = btoa(String.fromCharCode(...signed.serialize()));
         // Send via server proxy
         const sent = await fetch('/api/send-tx', {
             method: 'POST',
