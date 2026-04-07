@@ -269,6 +269,16 @@ app.get('/api/config', (req, res) => {
     res.json({ cluster: CLUSTER, rpcUrl: RPC_URL, treasury: TREASURY });
 });
 
+// ── Balance proxy — avoids browser CORS issues with RPC endpoints ─────────────
+app.get('/api/sol-balance/:wallet', async (req, res) => {
+    try {
+        const lamports = await connection.getBalance(new PublicKey(req.params.wallet), 'confirmed');
+        res.json({ lamports, sol: lamports / LAMPORTS_PER_SOL });
+    } catch(e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // ── Deposit: verify on-chain tx and credit balance ───────────────────────────
 const processedTxs = new Set();
 app.post('/api/deposit', async (req, res) => {

@@ -164,17 +164,11 @@
 
     async function getSolBalance() {
         if (!state.publicKey) return 0;
-        const addr = state.publicKey.toBase58();
-        const rpcs = state.cluster === 'devnet'
-            ? ['https://api.devnet.solana.com', 'https://rpc.ankr.com/solana_devnet']
-            : ['https://rpc.ankr.com/solana', 'https://api.mainnet-beta.solana.com'];
-        for (const rpc of rpcs) {
-            try {
-                const res  = await fetch(rpc, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getBalance', params: [addr, { commitment: 'confirmed' }] }) });
-                const json = await res.json();
-                if (json?.result?.value !== undefined) return json.result.value / LAMPORTS_PER_SOL;
-            } catch (_) {}
-        }
+        try {
+            const res  = await fetch(`/api/sol-balance/${state.publicKey.toBase58()}`);
+            const json = await res.json();
+            if (json?.sol !== undefined) return json.sol;
+        } catch (_) {}
         return 0;
     }
 
