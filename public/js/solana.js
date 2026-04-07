@@ -77,18 +77,12 @@
     }
 
     function _makeConnection() {
-        // Use a reliable public RPC — fallback chain so we always get a connection
         const rpc = state.cluster === 'mainnet-beta'
-            ? 'https://solana-mainnet.g.alchemy.com/v2/demo'
+            ? 'https://rpc.ankr.com/solana'
             : state.cluster === 'testnet'
             ? 'https://api.testnet.solana.com'
             : 'https://api.devnet.solana.com';
-        // Use the standard public endpoint as primary, alchemy as backup
-        const mainnetRpc = 'https://api.mainnet-beta.solana.com';
-        return new solanaWeb3.Connection(
-            state.cluster === 'mainnet-beta' ? mainnetRpc : rpc,
-            { commitment: 'confirmed', disableRetryOnRateLimit: false }
-        );
+        return new solanaWeb3.Connection(rpc, 'confirmed');
     }
 
     async function initSolana() {
@@ -252,10 +246,27 @@
 
     async function getSolBalance() {
         if (!state.publicKey) return 0;
-        try {
-            const lamports = await state.connection.getBalance(state.publicKey, 'confirmed');
-            return lamports / LAMPORTS_PER_SOL;
-        } catch (_) { return 0; }
+        const addr = state.publicKey.toBase58();
+        // Try multiple RPCs in order until one works
+        const rpcs = [
+            'https://rpc.ankr.com/solana',
+            'https://solana-mainnet.rpc.extrnode.com',
+            'https://api.mainnet-beta.solana.com'
+        ];
+        for (const rpc of rpcs) {
+            try {
+                const res = await fetch(rpc, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getBalance', params: [addr, { commitment: 'confirmed' }] })
+                });
+                const json = await res.json();
+                if (json?.result?.value !== undefined) {
+                    return json.result.value / LAMPORTS_PER_SOL;
+                }
+            } catch (_) {}
+        }
+        return 0;
     }
 
     async function _sendTx(instructions) {
