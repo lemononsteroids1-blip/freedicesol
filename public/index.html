@@ -283,6 +283,7 @@ window.addEventListener('load', async () => {
     const b = await FreeDiceSolana.getSolBalance();
     bal.textContent = b.toFixed(4) + ' SOL';
   }
+  setInterval(async () => { if (FreeDiceSolana.isConnected()) { const b = await FreeDiceSolana.getSolBalance(); bal.textContent = b.toFixed(4) + ' SOL'; } }, 6000);
   btn.addEventListener('click', async () => {
     if (FreeDiceSolana.isConnected()) return;
     btn.textContent = 'Connecting...';

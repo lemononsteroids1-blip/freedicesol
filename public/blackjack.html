@@ -512,7 +512,7 @@ function halveBet()  { const v = parseFloat(document.getElementById("betAmount")
         const bet = parseFloat(document.getElementById("betAmount").value) || 0;
         if (bet < 0) { showToast("Invalid bet amount", "error"); return; }
         if (bet > 0 && bet < 0.001) { showToast("Minimum bet is 0.001 SOL", "error"); return; }
-        // clear previous round cards
+        if (bet > balance) { showToast("Insufficient balance", "error"); return; }
         document.getElementById('dealerCards').innerHTML = '';
         document.getElementById('playerCards').innerHTML = '';
         document.getElementById('splitCards0').innerHTML = '';
@@ -759,8 +759,8 @@ function halveBet()  { const v = parseFloat(document.getElementById("betAmount")
             balance = await FreeDiceSolana.getSolBalance();
             updateBalance();
             loadSession();
-            setInterval(async () => { if (FreeDiceSolana.isConnected()) { balance = await FreeDiceSolana.getSolBalance(); updateBalance(); } }, 8000);
         }
+        setInterval(async () => { if (FreeDiceSolana.isConnected()) { balance = await FreeDiceSolana.getSolBalance(); updateBalance(); } }, 6000);
     });
 </script>
 </body>

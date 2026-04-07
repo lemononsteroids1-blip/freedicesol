@@ -310,7 +310,7 @@
                 balance = await FreeDiceSolana.getSolBalance();
                 updateBalance();
             }
-            setInterval(async () => { if (FreeDiceSolana.isConnected()) { balance = await FreeDiceSolana.getSolBalance(); updateBalance(); } }, 8000);
+            setInterval(async () => { if (FreeDiceSolana.isConnected()) { balance = await FreeDiceSolana.getSolBalance(); updateBalance(); } }, 6000);
             updatePayout();
         });
     </script>

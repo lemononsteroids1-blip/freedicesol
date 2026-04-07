@@ -365,6 +365,7 @@ function physicsTick() {
         setTimeout(async () => {
           balls = balls.filter(bb => bb !== ball);
           draw();
+          if (balls.length === 0) lockControls(false);
           if (ball.bet > 0) {
             const win = parseFloat((ball.bet * ball.mult).toFixed(6));
             balance = await FreeDiceSolana.getSolBalance();
@@ -439,6 +440,7 @@ async function dropBall() {
     balls.push(ball);
     dropBtn.textContent = 'Drop';
     dropBtn.disabled = false;
+    lockControls(true);
     if (!animRunning) requestAnimationFrame(physicsTick);
   } catch(e) {
     showToast(e.message || 'Failed', 'error');
@@ -497,8 +499,8 @@ window.addEventListener('load', async () => {
     btn.textContent = addr.slice(0,4) + '...' + addr.slice(-4);
     walletConnected = true;
     await loadBalance();
-    setInterval(async () => { if (FreeDiceSolana.isConnected()) { balance = await FreeDiceSolana.getSolBalance(); updateBalance(); } }, 8000);
   }
+  setInterval(async () => { if (FreeDiceSolana.isConnected()) { balance = await FreeDiceSolana.getSolBalance(); updateBalance(); } }, 6000);
   btn.addEventListener('click', async () => {
     if (walletConnected) return;
     btn.textContent = 'Connecting...';
