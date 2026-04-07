@@ -232,7 +232,7 @@
                     </div>
                 </div>
             </div>
-
+            <a class="nav-tab" href="/faq">FAQ</a>
         </nav>
     </div>
     <div style="display:flex;align-items:center;gap:16px;">
@@ -311,7 +311,7 @@
 <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
 <script src="/js/solana.js"></script>
 <script>
-    let balance = Number(localStorage.getItem("dice_balance") || 0);
+    let balance = 0;
     let walletConnected = false;
     let gameInProgress = false;
     let playerHand = [], dealerHand = [], deck = [];
@@ -488,7 +488,6 @@ function halveBet()  { const v = parseFloat(document.getElementById("betAmount")
 
     function updateBalance() {
         document.getElementById("balance").textContent = formatSol(balance);
-        localStorage.setItem("dice_balance", String(balance));
     }
 
     async function connectWallet() {
@@ -497,19 +496,20 @@ function halveBet()  { const v = parseFloat(document.getElementById("betAmount")
             walletConnected = true;
             const addr = FreeDiceSolana.getPublicKey();
             document.getElementById("walletBtn").textContent = addr.slice(0,4) + '...' + addr.slice(-4);
-            const r = await fetch(`/api/balance/${addr}`);
-            balance = (await r.json()).balance;
+            balance = await FreeDiceSolana.getSolBalance();
             updateBalance();
             showToast("Wallet connected", "success");
         } catch(e) { showToast(e.message || "Connection failed", "error"); }
     }
 
-    function deal() {
-        if (!walletConnected) { showToast("Connect wallet first", "error"); return; }
+    async function deal() {
+        const addr = FreeDiceSolana.getPublicKey();
+        if (!addr) { showToast("Connect wallet first", "error"); return; }
+        walletConnected = true;
         if (gameInProgress) { showToast("Finish the current hand first", "error"); return; }
         const bet = parseFloat(document.getElementById("betAmount").value) || 0;
-        if (bet < 0.001) { showToast("Minimum bet is 0.001 SOL", "error"); return; }
-        if (bet > balance) { showToast("Insufficient balance", "error"); return; }
+        if (bet < 0) { showToast("Invalid bet amount", "error"); return; }
+        if (bet > 0 && bet < 0.001) { showToast("Minimum bet is 0.001 SOL", "error"); return; }
         // clear previous round cards
         document.getElementById('dealerCards').innerHTML = '';
         document.getElementById('playerCards').innerHTML = '';
@@ -524,10 +524,23 @@ function halveBet()  { const v = parseFloat(document.getElementById("betAmount")
         document.getElementById('normalPlayerZone').style.display = '';
         document.getElementById('splitPlayerZone').style.display = 'none';
         const wallet = FreeDiceSolana.getPublicKey();
+        let sig = null;
+        if (bet > 0) {
+            document.getElementById('dealBtn').textContent = 'Confirm in wallet...';
+            try {
+                const result = await FreeDiceSolana.placeBetOnChain('blackjack', bet);
+                sig = result.sig;
+            } catch(e) {
+                showToast(e.message || 'Transaction cancelled', 'error');
+                document.getElementById('dealBtn').disabled = false;
+                document.getElementById('dealBtn').textContent = 'Deal';
+                return;
+            }
+        }
         fetch('/api/blackjack/deal', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ wallet, bet })
+            body: JSON.stringify({ wallet, bet, sig })
         }).then(r => r.json()).then(data => {
             if (data.error) { showToast(data.error, 'error'); return; }
             balance = data.balance; updateBalance();
@@ -661,7 +674,7 @@ function halveBet()  { const v = parseFloat(document.getElementById("betAmount")
         dealerHand.forEach((c, i) => dc.appendChild(makeCardEl(c, i === 1, i * 90)));
     }
 
-    function endRound(data, playerBusted) {
+    async function endRound(data, playerBusted) {
         if (!data) {
             const wallet = FreeDiceSolana.getPublicKey();
             const endpoint = playerBusted ? '/api/blackjack/bust' : '/api/blackjack/stand';
@@ -673,7 +686,8 @@ function halveBet()  { const v = parseFloat(document.getElementById("betAmount")
             return;
         }
         showActions(false);
-        balance = data.balance; updateBalance();
+        balance = await FreeDiceSolana.getSolBalance();
+        updateBalance();
         gameInProgress = false;
         isSplit = false;
         dealerHand = data.dealerHand;
@@ -740,8 +754,7 @@ function halveBet()  { const v = parseFloat(document.getElementById("betAmount")
             walletConnected = true;
             const addr = FreeDiceSolana.getPublicKey();
             document.getElementById("walletBtn").textContent = addr.slice(0,4) + '...' + addr.slice(-4);
-            const r = await fetch(`/api/balance/${addr}`);
-            balance = (await r.json()).balance;
+            balance = await FreeDiceSolana.getSolBalance();
             updateBalance();
             loadSession();
         }

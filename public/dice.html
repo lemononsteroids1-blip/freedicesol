@@ -76,7 +76,7 @@
                         </div>
                     </div>
                 </div>
-
+                <a class="nav-tab" href="/faq">FAQ</a>
             </nav>
         </div>
         <div style="display:flex;align-items:center;gap:16px;">
@@ -158,9 +158,7 @@
                 walletConnected = true;
                 wallet = FreeDiceSolana.getPublicKey();
                 document.getElementById("walletBtn").textContent = wallet.slice(0,4) + '...' + wallet.slice(-4);
-                const r = await fetch(`/api/balance/${wallet}`);
-                const d = await r.json();
-                balance = d.balance;
+                balance = await FreeDiceSolana.getSolBalance();
                 updateBalance();
                 updateStats();
                 showToast("Wallet connected", "success");
@@ -244,19 +242,27 @@
         }
 
         async function roll() {
-            if (!walletConnected) { showToast("Connect wallet first", "error"); return; }
+            if (!walletConnected && !FreeDiceSolana.isConnected()) { showToast("Connect wallet first", "error"); return; }
+            if (!walletConnected) { walletConnected = true; wallet = FreeDiceSolana.getPublicKey(); }
 
             const bet = parseFloat(document.getElementById("betAmount").value) || 0;
-            if (bet < 0.001) { showToast("Minimum bet is 0.001 SOL", "error"); return; }
+            if (bet < 0) { showToast("Invalid bet amount", "error"); return; }
+            if (bet > 0 && bet < 0.001) { showToast("Minimum bet is 0.001 SOL", "error"); return; }
             if (bet > balance) { showToast("Insufficient balance", "error"); return; }
             const btn = document.getElementById("rollBtn");
             btn.disabled = true;
-
             try {
+                let sig = null;
+                if (bet > 0) {
+                    btn.textContent = 'Confirm in wallet...';
+                    const result = await FreeDiceSolana.placeBetOnChain('dice', bet);
+                    sig = result.sig;
+                }
+                btn.textContent = 'Rolling...';
                 const res = await fetch("/api/dice/roll", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ wallet, bet, target, mode })
+                    body: JSON.stringify({ wallet, bet, target, mode, sig })
                 });
                 const data = await res.json();
                 if (data.error) { showToast(data.error, "error"); return; }
@@ -266,7 +272,7 @@
                 const profit = bet * (multiplier - 1);
 
                 showResultLine(data.result);
-                balance = data.balance;
+                balance = await FreeDiceSolana.getSolBalance();
                 updateBalance();
                 updateStats();
                 showToast(data.won ? `+${formatSol(profit)}` : `-${formatSol(bet)}`, data.won ? "success" : "error");
@@ -304,11 +310,11 @@
                 walletConnected = true;
                 wallet = FreeDiceSolana.getPublicKey();
                 document.getElementById("walletBtn").textContent = wallet.slice(0,4) + '...' + wallet.slice(-4);
-                const r = await fetch(`/api/balance/${wallet}`);
-                const d = await r.json();
-                balance = d.balance;
+                balance = await FreeDiceSolana.getSolBalance();
                 updateBalance();
             }
+            const ref = new URLSearchParams(location.search).get('ref') || localStorage.getItem('fd_ref');
+            if (ref && wallet) fetch('/api/referral/register', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ wallet, ref }) });
             updateStats();
             initSlider();
         });

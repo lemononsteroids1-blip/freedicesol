@@ -23,9 +23,12 @@
 
     async function initSolana() {
         await loadConfig();
-        state.connection = new solanaWeb3.Connection(
-            solanaWeb3.clusterApiUrl(state.cluster), 'confirmed'
-        );
+        const rpcUrl = state.cluster === 'mainnet-beta'
+            ? 'https://api.mainnet-beta.solana.com'
+            : state.cluster === 'testnet'
+            ? 'https://api.testnet.solana.com'
+            : 'https://api.devnet.solana.com';
+        state.connection = new solanaWeb3.Connection(rpcUrl, 'confirmed');
         // Try silent reconnect if user connected before
         await _tryAutoConnect();
     }
@@ -42,8 +45,13 @@
             if (!resp?.publicKey) return;
             state.wallet = provider;
             state.publicKey = resp.publicKey;
+            localStorage.setItem('fd_pubkey', state.publicKey.toBase58());
         } catch (_) {
-            // Not pre-approved — silently skip, user will click connect
+            // Not pre-approved — restore publicKey from localStorage so balance still loads
+            const saved = localStorage.getItem('fd_pubkey');
+            if (saved) {
+                try { state.publicKey = new solanaWeb3.PublicKey(saved); } catch (_) {}
+            }
         }
     }
 
@@ -210,6 +218,7 @@
         state.publicKey = resp.publicKey;
 
         const addr = state.publicKey.toBase58();
+        localStorage.setItem('fd_pubkey', addr);
         const short = addr.slice(0, 4) + '...' + addr.slice(-4);
 
         document.querySelectorAll('[data-wallet-btn]').forEach(btn => {
@@ -295,7 +304,7 @@
     }
 
     function isConnected() {
-        return !!(state.wallet && state.publicKey);
+        return !!state.publicKey;
     }
 
     window.FreeDiceSolana = { initSolana, connectWallet, isConnected, getPublicKey, placeBetOnChain, settleBetOnChain, getSolBalance };

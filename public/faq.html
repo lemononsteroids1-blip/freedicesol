@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>FreeDice — FAQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: "Inter", sans-serif; background: #0a0e13; color: #fff; min-height: 100vh; }
+.header { padding: 0 24px; background: #1a1f2e; display: flex; justify-content: space-between; align-items: center; height: 78px; position: sticky; top: 0; z-index: 50; }
+.header-left { display: flex; align-items: center; }
+.logo-link { display: inline-flex; align-items: center; text-decoration: none; }
+.logo-img { height: 72px; width: auto; display: block; }
+.nav-tabs { display: flex; align-items: center; gap: 4px; margin-left: 24px; }
+.nav-tab { display: inline-flex; align-items: center; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; color: #8b949e; text-decoration: none; border: none; background: none; cursor: pointer; transition: all 0.15s; position: relative; }
+.nav-tab:hover, .nav-tab.active { background: #2a2f3e; color: #fff; }
+.nav-tab .dropdown { display: none; position: absolute; top: 100%; left: 0; padding-top: 8px; min-width: 160px; z-index: 100; }
+.nav-tab:hover .dropdown { display: flex; flex-direction: column; }
+.dropdown-inner { background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 10px; padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: flex; flex-direction: column; }
+.dropdown-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 7px; color: #cdd5e0; font-size: 14px; font-weight: 600; text-decoration: none; transition: background 0.15s; }
+.dropdown-item:hover { background: #2a2f3e; color: #fff; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.balance-display { background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 12px 24px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 16px; color: #fff; height: 48px; }
+.connect-btn { background: #1e40af; border: none; border-radius: 8px; padding: 12px 24px; color: #fff; font-weight: 600; cursor: pointer; font-size: 16px; height: 48px; transition: background 0.2s; }
+.connect-btn:hover { background: #1d4ed8; }
+
+.page { max-width: 720px; margin: 0 auto; padding: 56px 24px 80px; }
+
+.page-title { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+.page-sub { color: #8b949e; font-size: 14px; margin-bottom: 48px; }
+
+.group { margin-bottom: 40px; }
+.group-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #8b949e; margin-bottom: 12px; }
+
+.item { border-bottom: 1px solid #1e2330; }
+.item:last-child { border-bottom: none; }
+.q { padding: 16px 0; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; user-select: none; color: #fff; }
+.q:hover { color: #a0aec0; }
+.q .chevron { color: #8b949e; font-size: 12px; flex-shrink: 0; transition: transform 0.2s; }
+.item.open .q .chevron { transform: rotate(180deg); }
+.a { display: none; padding-bottom: 16px; font-size: 14px; color: #8b949e; line-height: 1.7; }
+.item.open .a { display: block; }
+
+.divider { border: none; border-top: 1px solid #1e2330; margin: 40px 0; }
+
+/* Referral */
+.ref-box { background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 14px; padding: 28px; margin-bottom: 40px; }
+.ref-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+.ref-desc { font-size: 14px; color: #8b949e; margin-bottom: 24px; line-height: 1.6; }
+.ref-stat-row { display: flex; gap: 12px; margin-bottom: 24px; }
+.ref-stat { flex: 1; background: #0d1117; border: 1px solid #2a2f3e; border-radius: 10px; padding: 16px; text-align: center; }
+.ref-stat-val { font-size: 22px; font-weight: 800; color: #fff; }
+.ref-stat-label { font-size: 11px; color: #8b949e; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.ref-link-row { display: flex; gap: 8px; }
+.ref-input { flex: 1; background: #0d1117; border: 1px solid #2a2f3e; border-radius: 8px; padding: 12px 14px; color: #fff; font-size: 13px; font-family: monospace; outline: none; }
+.ref-copy-btn { background: #1e40af; border: none; border-radius: 8px; padding: 12px 20px; color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
+.ref-copy-btn:hover { background: #1d4ed8; }
+.ref-connect-msg { font-size: 14px; color: #8b949e; }
+.ref-connect-msg span { color: #3b82f6; cursor: pointer; }
+.ref-connect-msg span:hover { text-decoration: underline; }
+
+.toast { position: fixed; top: 92px; right: 20px; background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 8px; padding: 12px 16px; color: #fff; font-size: 14px; font-weight: 500; z-index: 1000; animation: slideIn 0.3s ease-out; }
+.toast.success { border-color: #48bb78; background: rgba(72,187,120,0.08); }
+@keyframes slideIn { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <a class="logo-link" href="/"><img class="logo-img" src="/assets/Free Dice.png" alt="FreeDice"></a>
+    <nav class="nav-tabs">
+      <div class="nav-tab">
+        Originals
+        <div class="dropdown">
+          <div class="dropdown-inner">
+            <a class="dropdown-item" href="/blackjack">Blackjack</a>
+            <a class="dropdown-item" href="/dice">Dice</a>
+            <a class="dropdown-item" href="/flip">Flip</a>
+            <a class="dropdown-item" href="/plinko">Plinko</a>
+          </div>
+        </div>
+      </div>
+      <a class="nav-tab active" href="/faq">FAQ</a>
+    </nav>
+  </div>
+  <div class="header-right">
+    <div class="balance-display">
+      <img src="https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png" style="width:18px;height:18px;border-radius:50%;flex-shrink:0;">
+      <span id="balDisplay">0.0000 SOL</span>
+    </div>
+    <button class="connect-btn" id="connectBtn">Connect Wallet</button>
+  </div>
+</header>
+
+<div class="page">
+  <div class="page-title">FAQ</div>
+  <div class="page-sub">Answers to common questions about FreeDice.</div>
+
+  <!-- Referral -->
+  <div class="ref-box">
+    <div class="ref-title">Referral Program</div>
+    <div class="ref-stat-row">
+      <div class="ref-stat">
+        <div class="ref-stat-val" id="refCount">—</div>
+        <div class="ref-stat-label">Referrals</div>
+      </div>
+      <div class="ref-stat">
+        <div class="ref-stat-val" id="refEarned">—</div>
+        <div class="ref-stat-label">Total Earned</div>
+      </div>
+      <div class="ref-stat">
+        <div class="ref-stat-val" id="refWagered">—</div>
+        <div class="ref-stat-label">SOL Wagered</div>
+      </div>
+    </div>
+    <div id="refClaimRow" style="display:none;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;background:#0d1117;border:1px solid #2a2f3e;border-radius:10px;padding:14px 18px;">
+        <div>
+          <div style="font-size:12px;color:#8b949e;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Unclaimed</div>
+          <div style="font-size:20px;font-weight:800;" id="refUnclaimed">0.0000 SOL</div>
+        </div>
+        <button id="claimBtn" onclick="claimRef()" style="background:#22c55e;border:none;border-radius:8px;padding:12px 24px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;transition:background 0.2s;">Claim</button>
+      </div>
+    </div>
+    <div id="refLinkSection" style="display:none;">
+      <div class="ref-link-row">
+        <input class="ref-input" id="refLink" readonly>
+        <button class="ref-copy-btn" onclick="copyRef()">Copy Link</button>
+      </div>
+    </div>
+    <div id="refConnectMsg" class="ref-connect-msg">
+      <span onclick="document.getElementById('connectBtn').click()">Connect your wallet</span> to get your referral link.
+    </div>
+    <div id="refReferredSection" style="display:none;margin-top:20px;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8b949e;margin-bottom:10px;">Referred Wallets</div>
+      <div id="refReferredList"></div>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <div class="group">
+    <div class="group-label">How it works</div>
+    <div class="item open">
+      <div class="q" onclick="toggle(this)">How do I play? <span class="chevron">▼</span></div>
+      <div class="a">Connect your wallet, pick a game, enter a bet and hit the button. Win and SOL goes straight back to your wallet.</div>
+    </div>
+    <div class="item">
+      <div class="q" onclick="toggle(this)">What wallets are supported? <span class="chevron">▼</span></div>
+      <div class="a">Phantom, Solflare, Backpack, Glow, Coinbase, Trust, Brave and Exodus.</div>
+    </div>
+    <div class="item">
+      <div class="q" onclick="toggle(this)">What is the minimum bet? <span class="chevron">▼</span></div>
+      <div class="a">0.001 SOL. You can also bet 0 to try for free.</div>
+    </div>
+    <div class="item">
+      <div class="q" onclick="toggle(this)">What is the house edge? <span class="chevron">▼</span></div>
+      <div class="a">98% RTP on all games.</div>
+    </div>
+    <div class="item">
+      <div class="q" onclick="toggle(this)">Which blockchain does FreeDice use? <span class="chevron">▼</span></div>
+      <div class="a">Solana.</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Games -->
+  <div class="group">
+    <div class="group-label">Games</div>
+    <div class="item open">
+      <div class="q" onclick="toggle(this)">How does Dice work? <span class="chevron">▼</span></div>
+      <div class="a">Pick a number, roll over or under it. Higher risk = higher multiplier.</div>
+    </div>
+    <div class="item">
+      <div class="q" onclick="toggle(this)">How does Blackjack work? <span class="chevron">▼</span></div>
+      <div class="a">Get closer to 21 than the dealer without busting. Hit, Stand, Double or Split.</div>
+    </div>
+    <div class="item">
+      <div class="q" onclick="toggle(this)">How does Coin Flip work? <span class="chevron">▼</span></div>
+      <div class="a">Heads or tails. Win = 1.98x your bet.</div>
+    </div>
+    <div class="item">
+      <div class="q" onclick="toggle(this)">How does Plinko work? <span class="chevron">▼</span></div>
+      <div class="a">Ball drops through pegs and lands in a multiplier slot. Pick your risk level and row count.</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Referral FAQ -->
+  <div class="group">
+    <div class="group-label">Referral Program</div>
+    <div class="item open">
+      <div class="q" onclick="toggle(this)">How does the referral program work? <span class="chevron">▼</span></div>
+      <div class="a">Share your link. Anyone who plays through it earns you 10% of the house edge on every bet they place.</div>
+    </div>
+    <div class="item">
+      <div class="q" onclick="toggle(this)">When do I get paid? <span class="chevron">▼</span></div>
+      <div class="a">Earnings build up and you claim whenever you want.</div>
+    </div>
+    <div class="item">
+      <div class="q" onclick="toggle(this)">Is there a limit on referral earnings? <span class="chevron">▼</span></div>
+      <div class="a">No cap, no expiry.</div>
+    </div>
+    <div class="item">
+      <div class="q" onclick="toggle(this)">How do I track my referrals? <span class="chevron">▼</span></div>
+      <div class="a">Connect your wallet on this page to see your stats.</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+<script src="/js/solana.js"></script>
+<script>
+function toggle(el) {
+  el.closest('.item').classList.toggle('open');
+}
+
+function showToast(msg, type) {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function copyRef() {
+  const input = document.getElementById('refLink');
+  navigator.clipboard.writeText(input.value).then(() => showToast('Referral link copied!', 'success'));
+}
+
+async function loadReferralStats(addr) {
+  try {
+    const r = await fetch(`/api/referral/stats/${addr}`);
+    const d = await r.json();
+    document.getElementById('refCount').textContent = d.referrals ?? 0;
+    document.getElementById('refEarned').textContent = (d.earned ?? 0).toFixed(4) + ' SOL';
+    document.getElementById('refWagered').textContent = (d.wagered ?? 0).toFixed(4) + ' SOL';
+    document.getElementById('refUnclaimed').textContent = (d.unclaimed ?? 0).toFixed(6) + ' SOL';
+    document.getElementById('refClaimRow').style.display = '';
+    const claimBtn = document.getElementById('claimBtn');
+    claimBtn.disabled = (d.unclaimed ?? 0) < 0.000001;
+    claimBtn.style.opacity = claimBtn.disabled ? '0.4' : '1';
+    claimBtn.style.cursor = claimBtn.disabled ? 'not-allowed' : 'pointer';
+    document.getElementById('refLink').value = `${location.origin}?ref=${addr}`;
+    document.getElementById('refLinkSection').style.display = '';
+    document.getElementById('refConnectMsg').style.display = 'none';
+    // render referred wallets
+    const list = document.getElementById('refReferredList');
+    if (d.referred && d.referred.length > 0) {
+      document.getElementById('refReferredSection').style.display = '';
+      list.innerHTML = d.referred.map(w => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1e2330;font-size:13px;">
+          <span style="font-family:monospace;color:#cdd5e0;">${w.wallet}</span>
+          <span style="color:#8b949e;">${w.wagered.toFixed(4)} wagered</span>
+          <span style="color:#48bb78;font-weight:700;">+${w.earned.toFixed(6)} SOL</span>
+        </div>`).join('');
+    } else {
+      document.getElementById('refReferredSection').style.display = '';
+      list.innerHTML = '<div style="font-size:13px;color:#8b949e;padding:10px 0;">No referrals yet.</div>';
+    }
+  } catch(_) {}
+}
+
+async function claimRef() {
+  const addr = FreeDiceSolana.getPublicKey();
+  if (!addr) return;
+  const btn = document.getElementById('claimBtn');
+  btn.textContent = 'Claiming...';
+  btn.disabled = true;
+  try {
+    const r = await fetch('/api/referral/claim', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ wallet: addr })
+    });
+    const d = await r.json();
+    if (d.error) { showToast(d.error, 'error'); }
+    else { showToast(`Claimed ${d.amount.toFixed(6)} SOL!`, 'success'); loadReferralStats(addr); }
+  } catch(e) { showToast('Claim failed', 'error'); }
+  btn.textContent = 'Claim';
+}
+
+// Check for ref param and store it
+const urlRef = new URLSearchParams(location.search).get('ref');
+if (urlRef) localStorage.setItem('fd_ref', urlRef);
+
+window.addEventListener('load', async () => {
+  await FreeDiceSolana.initSolana();
+  const btn = document.getElementById('connectBtn');
+  const bal = document.getElementById('balDisplay');
+
+  if (FreeDiceSolana.isConnected()) {
+    const addr = FreeDiceSolana.getPublicKey();
+    btn.textContent = addr.slice(0,4) + '...' + addr.slice(-4);
+    const b = await FreeDiceSolana.getSolBalance();
+    bal.textContent = b.toFixed(4) + ' SOL';
+    loadReferralStats(addr);
+  }
+
+  btn.addEventListener('click', async () => {
+    if (FreeDiceSolana.isConnected()) return;
+    btn.textContent = 'Connecting...';
+    try {
+      await FreeDiceSolana.connectWallet();
+      const addr = FreeDiceSolana.getPublicKey();
+      btn.textContent = addr.slice(0,4) + '...' + addr.slice(-4);
+      const b = await FreeDiceSolana.getSolBalance();
+      bal.textContent = b.toFixed(4) + ' SOL';
+      loadReferralStats(addr);
+    } catch(e) { btn.textContent = 'Connect Wallet'; }
+  });
+});
+</script>
+</body>
+</html>

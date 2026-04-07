@@ -23,8 +23,8 @@ body { font-family: "Inter", sans-serif; background: #0a0e13; color: #fff; min-h
 .dropdown-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 7px; color: #cdd5e0; font-size: 14px; font-weight: 600; text-decoration: none; transition: background 0.15s; }
 .dropdown-item:hover { background: #2a2f3e; color: #fff; }
 .header-right { display: flex; align-items: center; gap: 12px; }
-.balance-display { background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 10px 18px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; color: #fff; height: 44px; }
-.connect-btn { background: #1e40af; border: none; border-radius: 8px; padding: 10px 22px; color: #fff; font-weight: 600; cursor: pointer; font-size: 15px; height: 44px; transition: background 0.2s; }
+.balance-display { background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 12px 24px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 16px; color: #fff; height: 48px; }
+.connect-btn { background: #1e40af; border: none; border-radius: 8px; padding: 12px 24px; color: #fff; font-weight: 600; cursor: pointer; font-size: 16px; height: 48px; transition: background 0.2s; }
 .connect-btn:hover { background: #1d4ed8; }
 
 /* Social buttons */
@@ -110,7 +110,7 @@ body { font-family: "Inter", sans-serif; background: #0a0e13; color: #fff; min-h
           </div>
         </div>
       </div>
-
+      <a class="nav-tab" href="/faq">FAQ</a>
     </nav>
   </div>
   <div class="header-right">
@@ -266,8 +266,7 @@ try {
         </div>`;
       if (feed.querySelector('[style*="No bets"]')) feed.innerHTML = '';
       feed.insertAdjacentHTML('afterbegin', newRow);
-      // keep max 50 rows
-      while (feed.children.length > 50) feed.removeChild(feed.lastChild);
+      while (feed.children.length > 10) feed.removeChild(feed.lastChild);
     }
   };
 } catch(_) {}
@@ -288,15 +287,10 @@ window.addEventListener('load', async () => {
     btn.textContent = 'Connecting...';
     try {
       await FreeDiceSolana.connectWallet();
-      const b = await FreeDiceSolana.getSolBalance();
-      bal.textContent = b.toFixed(4) + ' SOL';
       const addr = FreeDiceSolana.getPublicKey();
       btn.textContent = addr.slice(0,4) + '...' + addr.slice(-4);
-      // Update chat identity after wallet connect
-      if (chatWs && chatWs.readyState === 1) {
-        chatWs.send(JSON.stringify({ type: 'identify', wallet: addr }));
-        document.getElementById('chatMeAddr').textContent = addr.slice(0,4) + '...' + addr.slice(-4);
-      }
+      const b = await FreeDiceSolana.getSolBalance();
+      bal.textContent = b.toFixed(4) + ' SOL';
     } catch(e) { btn.textContent = 'Connect Wallet'; }
   });
 });

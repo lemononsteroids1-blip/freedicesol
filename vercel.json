@@ -1,11 +1,8 @@
 {
-  "cleanUrls": true,
   "rewrites": [
-    { "source": "/", "destination": "/public/index.html" },
     { "source": "/dice", "destination": "/public/dice.html" },
     { "source": "/blackjack", "destination": "/public/blackjack.html" },
-    { "source": "/plinko", "destination": "/public/plinko.html" },
-    { "source": "/crash", "destination": "/public/crash.html" },
-    { "source": "/mines", "destination": "/public/mines.html" }
+    { "source": "/flip", "destination": "/public/flip.html" },
+    { "source": "/", "destination": "/public/index.html" }
   ]
 }

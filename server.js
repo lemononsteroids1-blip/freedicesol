@@ -43,23 +43,51 @@ function loadState() {
             const raw = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
             return {
                 balances: new Map(Object.entries(raw.balances || {})),
-                bjSessions: new Map(Object.entries(raw.bjSessions || {}))
+                bjSessions: new Map(Object.entries(raw.bjSessions || {})),
+                referrals: new Map(Object.entries(raw.referrals || {})),
+                referrers: new Map(Object.entries(raw.referrers || {}))
             };
         }
     } catch (_) {}
-    return { balances: new Map(), bjSessions: new Map() };
+    return { balances: new Map(), bjSessions: new Map(), referrals: new Map(), referrers: new Map() };
 }
 
 function saveState() {
     try {
         fs.writeFileSync(STATE_FILE, JSON.stringify({
             balances: Object.fromEntries(balances),
-            bjSessions: Object.fromEntries(bjSessions)
+            bjSessions: Object.fromEntries(bjSessions),
+            referrals: Object.fromEntries(referrals),
+            referrers: Object.fromEntries(referrers)
         }));
     } catch (_) {}
 }
 
-const { balances, bjSessions } = loadState();
+const { balances, bjSessions, referrals, referrers } = loadState();
+
+function trackReferral(wallet, referrer) {
+    if (!wallet || !referrer || wallet === referrer) return;
+    if (referrals.has(wallet)) return;
+    referrals.set(wallet, { referrer, wagered: 0, earned: 0 });
+    if (!referrers.has(referrer)) referrers.set(referrer, { count: 0, wagered: 0, earned: 0, unclaimed: 0 });
+    referrers.get(referrer).count++;
+    saveState();
+}
+
+function trackWager(wallet, betAmt) {
+    if (!referrals.has(wallet) || betAmt <= 0) return;
+    const ref = referrals.get(wallet);
+    const commission = betAmt * 0.002;
+    ref.wagered += betAmt;
+    ref.earned += commission;
+    const r = referrers.get(ref.referrer);
+    if (r) {
+        r.wagered += betAmt;
+        r.earned += commission;
+        r.unclaimed += commission;
+    }
+    saveState();
+}
 
 // Treasury wallet — must match houseKeypair public key in production
 const TREASURY = houseKeypair ? houseKeypair.publicKey.toBase58() : (process.env.TREASURY_WALLET || '11111111111111111111111111111111');
@@ -157,9 +185,82 @@ wss.on('connection', (ws) => {
     });
 });
 
+// ── Referral API ─────────────────────────────────────────────────────────────
+app.post('/api/referral/register', (req, res) => {
+    const { wallet, ref } = req.body;
+    if (!wallet || !ref) return res.status(400).json({ error: 'wallet and ref required' });
+    trackReferral(wallet, ref);
+    res.json({ ok: true });
+});
+
+app.get('/api/referral/stats/:wallet', (req, res) => {
+    const w = req.params.wallet;
+    const data = referrers.get(w) || { count: 0, wagered: 0, earned: 0, unclaimed: 0 };
+    // build list of referred wallets
+    const referred = [];
+    for (const [wallet, ref] of referrals) {
+        if (ref.referrer === w) {
+            referred.push({
+                wallet: wallet.slice(0,4) + '...' + wallet.slice(-4),
+                wagered: parseFloat(ref.wagered.toFixed(4)),
+                earned: parseFloat(ref.earned.toFixed(6))
+            });
+        }
+    }
+    res.json({ referrals: data.count, wagered: data.wagered, earned: data.earned, unclaimed: data.unclaimed || 0, referred });
+});
+
+app.post('/api/referral/claim', async (req, res) => {
+    const { wallet } = req.body;
+    if (!wallet) return res.status(400).json({ error: 'wallet required' });
+    const data = referrers.get(wallet);
+    if (!data || !data.unclaimed || data.unclaimed < 0.000001) return res.status(400).json({ error: 'Nothing to claim' });
+    if (!houseKeypair) return res.status(500).json({ error: 'Payouts disabled' });
+    const amount = parseFloat(data.unclaimed.toFixed(9));
+    const lamports = Math.floor(amount * LAMPORTS_PER_SOL);
+    if (lamports <= 0) return res.status(400).json({ error: 'Amount too small' });
+    try {
+        const tx = new Transaction().add(SystemProgram.transfer({
+            fromPubkey: houseKeypair.publicKey,
+            toPubkey: new PublicKey(wallet),
+            lamports
+        }));
+        const sig = await sendAndConfirmTransaction(connection, tx, [houseKeypair]);
+        data.unclaimed = 0;
+        console.log(`Referral claim: ${wallet.slice(0,8)} ${amount} SOL sig=${sig.slice(0,16)}`);
+        res.json({ sig, amount, balance: 0 });
+    } catch(e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // ── Balance API ──────────────────────────────────────────────────────────────
 app.get('/api/balance/:wallet', (req, res) => {
     res.json({ balance: getBalance(req.params.wallet) });
+});
+
+// ── Withdraw ──────────────────────────────────────────────────────────────────
+app.post('/api/withdraw', async (req, res) => {
+    const { wallet, amount } = req.body;
+    if (!wallet || !amount) return res.status(400).json({ error: 'wallet and amount required' });
+    const bal = getBalance(wallet);
+    const withdrawAmt = parseFloat(amount);
+    if (withdrawAmt <= 0 || withdrawAmt > bal) return res.status(400).json({ error: 'Insufficient balance' });
+    if (!houseKeypair) return res.status(500).json({ error: 'Payouts disabled' });
+    try {
+        const lamports = Math.floor(withdrawAmt * LAMPORTS_PER_SOL);
+        const tx = new Transaction().add(SystemProgram.transfer({
+            fromPubkey: houseKeypair.publicKey,
+            toPubkey: new PublicKey(wallet),
+            lamports
+        }));
+        const sig = await sendAndConfirmTransaction(connection, tx, [houseKeypair]);
+        setBalance(wallet, bal - withdrawAmt);
+        console.log(`Withdraw: ${wallet.slice(0,8)} -${withdrawAmt} SOL sig=${sig.slice(0,16)}`);
+        res.json({ sig, balance: getBalance(wallet) });
+    } catch(e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 // ── Config ───────────────────────────────────────────────────────────────────
@@ -200,88 +301,99 @@ app.post('/api/deposit', async (req, res) => {
     }
 });
 
+// ── On-chain bet helpers ─────────────────────────────────────────────────────
+async function verifyBetTx(sig, wallet, betAmt) {
+    if (processedTxs.has(sig)) throw new Error('Transaction already used');
+    const tx = await connection.getParsedTransaction(sig, { maxSupportedTransactionVersion: 0, commitment: 'confirmed' });
+    if (!tx) throw new Error('Transaction not found');
+    let paid = 0;
+    for (const ix of tx.transaction.message.instructions) {
+        if (ix.program === 'system' && ix.parsed?.type === 'transfer')
+            if (ix.parsed.info.destination === TREASURY && ix.parsed.info.source === wallet)
+                paid += ix.parsed.info.lamports;
+    }
+    const paidSol = paid / LAMPORTS_PER_SOL;
+    if (Math.abs(paidSol - betAmt) > 0.0001) throw new Error('Transaction amount mismatch');
+    processedTxs.add(sig);
+}
+
+async function payoutWin(wallet, amountSol) {
+    if (!houseKeypair || amountSol <= 0) return null;
+    try {
+        const lamports = Math.floor(amountSol * LAMPORTS_PER_SOL);
+        const tx = new Transaction().add(SystemProgram.transfer({
+            fromPubkey: houseKeypair.publicKey,
+            toPubkey: new PublicKey(wallet),
+            lamports
+        }));
+        return await sendAndConfirmTransaction(connection, tx, [houseKeypair]);
+    } catch(e) { console.error('Payout failed:', e.message); return null; }
+}
+
 // ── Recent bets feed ─────────────────────────────────────────────────────────
 const recentBets = [];
 function addBet(game, wallet, won, amount, multiplier) {
     recentBets.unshift({ game, wallet: wallet.slice(0,4)+'...'+wallet.slice(-4), won, amount: parseFloat(amount.toFixed(4)), multiplier: parseFloat(multiplier.toFixed(2)), ts: Date.now() });
-    if (recentBets.length > 50) recentBets.pop();
+    if (recentBets.length > 10) recentBets.pop();
     broadcast({ type: 'bet', bet: recentBets[0] });
 }
 
 app.get('/api/bets', (req, res) => res.json(recentBets.slice(0, 50)));
 
 // ── Dice (98% RTP) ───────────────────────────────────────────────────────────
-app.post('/api/dice/roll', (req, res) => {
-    const { wallet, bet, target, mode } = req.body;
+app.post('/api/dice/roll', async (req, res) => {
+    const { wallet, bet, target, mode, sig } = req.body;
     if (!wallet) return res.status(400).json({ error: 'wallet required' });
-
     const betAmt = parseFloat(bet) || 0;
-    const bal = getBalance(wallet);
-
-    if (betAmt < 0 || betAmt > bal) return res.status(400).json({ error: 'Insufficient balance' });
-
+    if (betAmt < 0 || (betAmt > 0 && betAmt < 0.001)) return res.status(400).json({ error: 'Invalid bet amount' });
+    if (betAmt > 0) {
+        if (!sig) return res.status(400).json({ error: 'sig required' });
+        try { await verifyBetTx(sig, wallet, betAmt); } catch(e) { return res.status(400).json({ error: e.message }); }
+    }
     const result = secureRoll();
     const winChance = mode === 'under' ? target : 100 - target;
-    const multiplier = 98 / winChance; // 98% RTP
+    const multiplier = 98 / winChance;
     const won = mode === 'under' ? result < target : result > target;
     const profit = betAmt * (multiplier - 1);
     const delta = won ? profit : -betAmt;
-
-    setBalance(wallet, bal + delta);
+    const payoutSig = won ? await payoutWin(wallet, betAmt * multiplier) : null;
     addBet('Dice', wallet, won, betAmt, multiplier);
-
-    res.json({
-        result: parseFloat(result.toFixed(2)),
-        won,
-        multiplier: parseFloat(multiplier.toFixed(4)),
-        profit: parseFloat(profit.toFixed(6)),
-        delta: parseFloat(delta.toFixed(6)),
-        balance: getBalance(wallet)
-    });
+    trackWager(wallet, betAmt);
+    res.json({ result: parseFloat(result.toFixed(2)), won, multiplier: parseFloat(multiplier.toFixed(4)), profit: parseFloat(profit.toFixed(6)), delta: parseFloat(delta.toFixed(6)), payoutSig });
 });
 
 // ── Blackjack (98% RTP via house edge on dealer rules) ───────────────────────
 // House edge achieved by: dealer hits soft 17, BJ pays 6:5 (not 3:2)
 // This brings theoretical RTP to ~98%
 
-app.post('/api/blackjack/deal', (req, res) => {
-    const { wallet, bet } = req.body;
+app.post('/api/blackjack/deal', async (req, res) => {
+    const { wallet, bet, sig } = req.body;
     if (!wallet) return res.status(400).json({ error: 'wallet required' });
-
     const betAmt = parseFloat(bet) || 0;
-    const bal = getBalance(wallet);
-    if (betAmt < 0 || betAmt > bal) return res.status(400).json({ error: 'Insufficient balance' });
+    if (betAmt < 0 || (betAmt > 0 && betAmt < 0.001)) return res.status(400).json({ error: 'Invalid bet amount' });
+    if (betAmt > 0) {
+        if (!sig) return res.status(400).json({ error: 'sig required' });
+        try { await verifyBetTx(sig, wallet, betAmt); } catch(e) { return res.status(400).json({ error: e.message }); }
+    }
 
     const deck = buildDeck();
     const playerHand = [deck.pop(), deck.pop()];
     const dealerHand = [deck.pop(), deck.pop()];
 
     bjSessions.set(wallet, {
-        bet: betAmt,
-        deck,
-        playerHand,
-        dealerHand,
-        splitHands: null,
-        splitIndex: 0,
-        insuranceBet: 0,
-        insuranceTaken: false,
-        done: false
+        bet: betAmt, deck, playerHand, dealerHand,
+        splitHands: null, splitIndex: 0,
+        insuranceBet: 0, insuranceTaken: false, done: false
     });
     saveState();
 
-    setBalance(wallet, bal - betAmt);
-
     const playerTotal = handTotal(playerHand);
-    const offerInsurance = dealerHand[0].r === 'A';
-
     res.json({
-        playerHand,
-        dealerUp: dealerHand[0],
-        playerTotal,
+        playerHand, dealerUp: dealerHand[0], playerTotal,
         dealerVisible: cardValue(dealerHand[0]),
-        offerInsurance,
+        offerInsurance: dealerHand[0].r === 'A',
         naturalBJ: playerTotal === 21,
-        balance: getBalance(wallet)
+        balance: betAmt
     });
 });
 
@@ -291,15 +403,9 @@ app.post('/api/blackjack/insurance', (req, res) => {
     if (!session || session.done) return res.status(400).json({ error: 'No active session' });
     if (session.dealerHand[0].r !== 'A') return res.status(400).json({ error: 'Insurance not available' });
     if (session.insuranceTaken) return res.status(400).json({ error: 'Already taken' });
-
-    const insuranceBet = session.bet / 2;
-    const bal = getBalance(wallet);
-    if (insuranceBet > bal) return res.status(400).json({ error: 'Insufficient balance' });
-
-    setBalance(wallet, bal - insuranceBet);
-    session.insuranceBet = insuranceBet;
+    session.insuranceBet = session.bet / 2;
     session.insuranceTaken = true;
-    res.json({ insuranceBet, balance: getBalance(wallet) });
+    res.json({ insuranceBet: session.insuranceBet, balance: 0 });
 });
 
 app.post('/api/blackjack/hit', (req, res) => {
@@ -335,19 +441,9 @@ app.post('/api/blackjack/double', (req, res) => {
     const { wallet } = req.body;
     const session = bjSessions.get(wallet);
     if (!session || session.done) return res.status(400).json({ error: 'No active session' });
-
-    const bal = getBalance(wallet);
-    const originalBet = session.bet;
-    if (bal < originalBet) return res.status(400).json({ error: 'Insufficient balance to double' });
-
-    setBalance(wallet, bal - originalBet);
-    session.bet = originalBet * 2;
-
+    session.bet = session.bet * 2;
     const hand = session.splitHands ? session.splitHands[session.splitIndex] : session.playerHand;
     hand.push(session.deck.pop());
-    const total = handTotal(hand);
-
-    // Return card so client shows it, then resolve immediately
     return resolveRound(wallet, session, res, hand);
 });
 
@@ -355,22 +451,14 @@ app.post('/api/blackjack/bust', (req, res) => {
     const { wallet } = req.body;
     const session = bjSessions.get(wallet);
     if (!session || session.done) return res.status(400).json({ error: 'No active session' });
-    // Player busted — settle immediately, no dealer draw
     const hands = session.splitHands || [session.playerHand];
-    const totalDelta = 0; // player busted, loses everything
-    const bal = getBalance(wallet);
-    setBalance(wallet, bal + totalDelta);
     session.done = true;
     saveState();
     hands.forEach(hand => addBet('Blackjack', wallet, false, session.bet / hands.length, 0));
     res.json({
-        dealerHand: session.dealerHand,
-        dealerTotal: handTotal(session.dealerHand),
-        playerHands: hands,
-        playerTotals: hands.map(handTotal),
-        outcome: 'lose',
-        totalDelta: 0,
-        balance: getBalance(wallet)
+        dealerHand: session.dealerHand, dealerTotal: handTotal(session.dealerHand),
+        playerHands: hands, playerTotals: hands.map(handTotal),
+        outcome: 'lose', totalDelta: 0, balance: 0
     });
 });
 
@@ -378,22 +466,16 @@ app.post('/api/blackjack/split', (req, res) => {
     const { wallet } = req.body;
     const session = bjSessions.get(wallet);
     if (!session || session.done) return res.status(400).json({ error: 'No active session' });
-
-    const bal = getBalance(wallet);
-    if (bal < session.bet) return res.status(400).json({ error: 'Insufficient balance to split' });
     if (session.playerHand[0].r !== session.playerHand[1].r) return res.status(400).json({ error: 'Cannot split' });
-
-    setBalance(wallet, bal - session.bet);
     session.splitHands = [
         [session.playerHand[0], session.deck.pop()],
         [session.playerHand[1], session.deck.pop()]
     ];
     session.splitIndex = 0;
-
-    res.json({ splitHands: session.splitHands, totals: session.splitHands.map(handTotal), balance: getBalance(wallet) });
+    res.json({ splitHands: session.splitHands, totals: session.splitHands.map(handTotal), balance: 0 });
 });
 
-function resolveRound(wallet, session, res, doubledHand) {
+async function resolveRound(wallet, session, res, doubledHand) {
     // Dealer hits soft 17 (house edge for ~98% RTP)
     while (handTotal(session.dealerHand) < 17 ||
            (handTotal(session.dealerHand) === 17 && session.dealerHand.some(c => c.r === 'A') && handTotal(session.dealerHand) <= 17)) {
@@ -437,11 +519,11 @@ function resolveRound(wallet, session, res, doubledHand) {
     session.done = true;
     saveState();
 
-    // record each hand as a bet
     hands.forEach(hand => {
         const p = handTotal(hand);
         const didWin = p <= 21 && (dealerTotal > 21 || p > dealerTotal);
         addBet('Blackjack', wallet, didWin, session.bet / hands.length, didWin ? 2 : 0);
+        trackWager(wallet, session.bet / hands.length);
     });
 
     let outcome;
@@ -450,15 +532,17 @@ function resolveRound(wallet, session, res, doubledHand) {
     else if (pushes === hands.length) outcome = 'push';
     else outcome = wins > losses ? 'win' : 'lose';
 
+    // pay out on win or push
+    let payoutSig = null;
+    if (totalDelta > 0 && session.bet > 0) {
+        payoutSig = await payoutWin(wallet, totalDelta);
+    }
+
     res.json({
-        dealerHand: session.dealerHand,
-        dealerTotal,
-        playerHands: hands,
-        playerTotals: hands.map(handTotal),
-        outcome,
-        totalDelta: parseFloat(totalDelta.toFixed(6)),
-        balance: getBalance(wallet),
-        doubledHand: doubledHand || null
+        dealerHand: session.dealerHand, dealerTotal,
+        playerHands: hands, playerTotals: hands.map(handTotal),
+        outcome, totalDelta: parseFloat(totalDelta.toFixed(6)),
+        balance: 0, doubledHand: doubledHand || null, payoutSig
     });
 }
 
@@ -479,25 +563,25 @@ app.get('/api/blackjack/session/:wallet', (req, res) => {
 });
 
 // ── Coin Flip (98% RTP) ─────────────────────────────────────────────────────────
-app.post('/api/flip', (req, res) => {
-    const { wallet, bet, side } = req.body;
+app.post('/api/flip', async (req, res) => {
+    const { wallet, bet, side, sig } = req.body;
     if (!wallet) return res.status(400).json({ error: 'wallet required' });
     if (side !== 'heads' && side !== 'tails') return res.status(400).json({ error: 'side must be heads or tails' });
-
     const betAmt = parseFloat(bet) || 0;
-    const bal = getBalance(wallet);
-    if (betAmt < 0 || betAmt > bal) return res.status(400).json({ error: 'Insufficient balance' });
-
+    if (betAmt < 0 || (betAmt > 0 && betAmt < 0.001)) return res.status(400).json({ error: 'Invalid bet amount' });
+    if (betAmt > 0) {
+        if (!sig) return res.status(400).json({ error: 'sig required' });
+        try { await verifyBetTx(sig, wallet, betAmt); } catch(e) { return res.status(400).json({ error: e.message }); }
+    }
     const roll = crypto.randomInt(0, 10000);
     const result = roll < 5000 ? 'heads' : 'tails';
     const won = result === side;
     const multiplier = 1.98;
     const delta = won ? betAmt * (multiplier - 1) : -betAmt;
-
-    setBalance(wallet, bal + delta);
+    const payoutSig = won ? await payoutWin(wallet, betAmt * multiplier) : null;
     addBet('Flip', wallet, won, betAmt, won ? multiplier : 0);
-
-    res.json({ result, won, multiplier, delta: parseFloat(delta.toFixed(6)), balance: getBalance(wallet) });
+    trackWager(wallet, betAmt);
+    res.json({ result, won, multiplier, delta: parseFloat(delta.toFixed(6)), payoutSig });
 });
 
 // ── Plinko ───────────────────────────────────────────────────────────────────
@@ -538,34 +622,29 @@ const PLINKO_MULTIPLIERS = {
     }
 };
 
-app.post('/api/plinko', (req, res) => {
-    const { wallet, bet, rows, risk } = req.body;
+app.post('/api/plinko', async (req, res) => {
+    const { wallet, bet, rows, risk, sig } = req.body;
     if (!wallet) return res.status(400).json({ error: 'wallet required' });
     const betAmt = parseFloat(bet) || 0;
-    const bal = getBalance(wallet);
-    if (betAmt < 0 || (betAmt > 0 && betAmt > bal)) return res.status(400).json({ error: 'Insufficient balance' });
+    if (betAmt < 0 || (betAmt > 0 && betAmt < 0.001)) return res.status(400).json({ error: 'Invalid bet amount' });
+    if (betAmt > 0) {
+        if (!sig) return res.status(400).json({ error: 'sig required' });
+        try { await verifyBetTx(sig, wallet, betAmt); } catch(e) { return res.status(400).json({ error: e.message }); }
+    }
     const numRows = Math.min(Math.max(parseInt(rows) || 16, 8), 16);
     const riskKey = ['low','medium','high'].includes(risk) ? risk : 'high';
     const mults = PLINKO_MULTIPLIERS[riskKey][numRows];
-
-    // pos goes 0..numRows, giving numRows+1 buckets = mults.length
     const path = [];
     let pos = 0;
-    for (let i = 0; i < numRows; i++) {
-        const go = crypto.randomInt(0, 2);
-        path.push(go);
-        pos += go;
-    }
-
+    for (let i = 0; i < numRows; i++) { const go = crypto.randomInt(0, 2); path.push(go); pos += go; }
     const bucketIdx = Math.min(pos, mults.length - 1);
     const multiplier = mults[bucketIdx];
     const payout = parseFloat((betAmt * multiplier).toFixed(6));
     const delta = payout - betAmt;
-
-    setBalance(wallet, bal + delta);
+    const payoutSig = payout > betAmt ? await payoutWin(wallet, payout) : null;
     addBet('Plinko', wallet, payout >= betAmt, betAmt, multiplier);
-
-    res.json({ multiplier, payout, delta: parseFloat(delta.toFixed(6)), balance: getBalance(wallet), path, bucketIdx });
+    trackWager(wallet, betAmt);
+    res.json({ multiplier, payout, delta: parseFloat(delta.toFixed(6)), path, bucketIdx, payoutSig });
 });
 
 
@@ -602,6 +681,7 @@ app.get('/dice',      (req, res) => res.sendFile(path.join(__dirname, 'public', 
 app.get('/blackjack', (req, res) => res.sendFile(path.join(__dirname, 'public', 'blackjack.html')));
 app.get('/flip',      (req, res) => res.sendFile(path.join(__dirname, 'public', 'flip.html')));
 app.get('/plinko',    (req, res) => res.sendFile(path.join(__dirname, 'public', 'plinko.html')));
+app.get('/faq',       (req, res) => res.sendFile(path.join(__dirname, 'public', 'faq.html')));
 
 
 server.listen(PORT, () => console.log(`FreeDice running on http://localhost:${PORT}`));

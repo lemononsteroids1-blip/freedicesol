@@ -23,8 +23,7 @@ body { font-family: "Inter", sans-serif; background: #0a0e13; color: #fff; displ
 .dropdown-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 7px; color: #cdd5e0; font-size: 14px; font-weight: 600; text-decoration: none; transition: background 0.15s; }
 .dropdown-item:hover { background: #2a2f3e; color: #fff; }
 .balance-display { background: #2a2f3e; border: 1px solid #3a3f4e; border-radius: 8px; padding: 12px 24px; display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 16px; color: #fff; height: 48px; }
-.deposit-btn { background: #1e40af; border: none; border-radius: 8px; padding: 12px 24px; color: #fff; font-weight: 600; cursor: pointer; font-size: 16px; transition: all 0.2s ease; height: 48px; }
-.deposit-btn:hover { background: #1d4ed8; }
+.deposit-btn { background: #1e40af; border: none; border-radius: 8px; padding: 12px 24px; color: #fff; font-weight: 600; cursor: pointer; font-size: 16px; transition: all 0.2s ease; height: 48px; }.deposit-btn:hover { background: #1d4ed8; }
 
 .main-content { display: flex; flex: 1; min-height: 0; }
 .bet-panel { width: 280px; background: #1a1f2e; padding: 24px; display: flex; flex-direction: column; gap: 20px; flex-shrink: 0; overflow-y: auto; }
@@ -67,7 +66,7 @@ canvas { display: block; }
           <a class="dropdown-item" href="/plinko">Plinko</a>
         </div></div>
       </div>
-
+      <a class="nav-tab" href="/faq">FAQ</a>
     </nav>
   </div>
   <div style="display:flex;align-items:center;gap:16px;">
@@ -363,12 +362,12 @@ function physicsTick() {
         const bkt = buckets[ball.bucketIdx];
         if (bkt) bkt.flash = 22;
         draw();
-        setTimeout(() => {
+        setTimeout(async () => {
           balls = balls.filter(bb => bb !== ball);
           draw();
           if (ball.bet > 0) {
             const win = parseFloat((ball.bet * ball.mult).toFixed(6));
-            balance   = parseFloat((balance + win).toFixed(6));
+            balance = await FreeDiceSolana.getSolBalance();
             updateBalance();
             showToast(
               win >= ball.bet
@@ -404,20 +403,30 @@ function lockControls(locked) {
 }
 
 async function dropBall() {
+  const dropBtn = document.getElementById('dropBtn');
+  if (dropBtn.disabled) return;
   const bet = parseFloat(document.getElementById('betAmount').value) || 0;
-  if (bet < 0.001) { showToast('Minimum bet is 0.001 SOL', 'error'); return; }
+  if (bet < 0) { showToast('Invalid bet amount', 'error'); return; }
+  if (bet > 0 && bet < 0.001) { showToast('Minimum bet is 0.001 SOL', 'error'); return; }
   if (bet > balance) { showToast('Insufficient balance', 'error'); return; }
   const wallet = FreeDiceSolana.getPublicKey();
   if (!wallet) { showToast('Connect wallet first', 'error'); return; }
-    const res  = await fetch('/api/plinko', {
+  dropBtn.disabled = true;
+  try {
+    let sig = null;
+    if (bet > 0) {
+      dropBtn.textContent = 'Confirm in wallet...';
+      const result = await FreeDiceSolana.placeBetOnChain('plinko', bet);
+      sig = result.sig;
+    }
+    dropBtn.textContent = 'Dropping...';
+    const res = await fetch('/api/plinko', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ wallet, bet, rows, risk })
+      body: JSON.stringify({ wallet, bet, rows, risk, sig })
     });
     const data = await res.json();
-    if (data.error) { showToast(data.error, 'error'); return; }
-    balance = data.balance;
-    updateBalance();
+    if (data.error) { showToast(data.error, 'error'); dropBtn.textContent = 'Drop'; dropBtn.disabled = false; return; }
     const { pts, bucketIdx } = buildWaypoints(data.path, data.bucketIdx);
     const ball = {
       x: pts[0].x, y: pts[0].y,
@@ -429,9 +438,13 @@ async function dropBall() {
       done: false
     };
     balls.push(ball);
+    dropBtn.textContent = 'Drop';
+    dropBtn.disabled = false;
     if (!animRunning) requestAnimationFrame(physicsTick);
   } catch(e) {
     showToast(e.message || 'Failed', 'error');
+    dropBtn.textContent = 'Drop';
+    dropBtn.disabled = false;
   }
 }
 
@@ -470,28 +483,31 @@ function resize() {
   draw();
 }
 
+async function loadBalance() {
+  const addr = FreeDiceSolana.getPublicKey();
+  if (!addr) return;
+  balance = await FreeDiceSolana.getSolBalance();
+  updateBalance();
+}
+
 window.addEventListener('load', async () => {
   await FreeDiceSolana.initSolana();
   const btn = document.getElementById('connectBtn');
   if (FreeDiceSolana.isConnected()) {
     const addr = FreeDiceSolana.getPublicKey();
     btn.textContent = addr.slice(0,4) + '...' + addr.slice(-4);
-    const r = await fetch(`/api/balance/${addr}`);
-    balance = (await r.json()).balance;
-    updateBalance();
     walletConnected = true;
+    await loadBalance();
   }
   btn.addEventListener('click', async () => {
-    if (FreeDiceSolana.isConnected()) return;
+    if (walletConnected) return;
     btn.textContent = 'Connecting...';
     try {
       await FreeDiceSolana.connectWallet();
       walletConnected = true;
       const addr = FreeDiceSolana.getPublicKey();
       btn.textContent = addr.slice(0,4) + '...' + addr.slice(-4);
-      const r = await fetch(`/api/balance/${addr}`);
-      balance = (await r.json()).balance;
-      updateBalance();
+      await loadBalance();
     } catch(e) { btn.textContent = 'Connect Wallet'; }
   });
   resize();
