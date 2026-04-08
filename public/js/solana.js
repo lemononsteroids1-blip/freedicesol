@@ -70,6 +70,7 @@
             state.wallet    = provider;
             state.publicKey = resp.publicKey;
             localStorage.setItem('fd_pubkey', state.publicKey.toBase58());
+            _registerRef(state.publicKey.toBase58());
         } catch (_) {
             const saved = localStorage.getItem('fd_pubkey');
             if (saved) try { state.publicKey = new solanaWeb3.PublicKey(saved); } catch (_) {}
@@ -146,6 +147,7 @@
         state.publicKey = resp.publicKey;
         const addr = state.publicKey.toBase58();
         localStorage.setItem('fd_pubkey', addr);
+        _registerRef(addr);
         return addr;
     }
 
@@ -158,26 +160,40 @@
         if (provider) {
             try {
                 const resp = await provider.connect({ onlyIfTrusted: true });
-                if (resp?.publicKey) { state.wallet = provider; state.publicKey = resp.publicKey; return; }
+                if (resp?.publicKey) { state.wallet = provider; state.publicKey = resp.publicKey; _registerRef(state.publicKey.toBase58()); return; }
             } catch (_) {}
-            // Not pre-approved — show popup
             const resp = await provider.connect();
             state.wallet    = provider;
             state.publicKey = resp.publicKey;
             localStorage.setItem('fd_pubkey', state.publicKey.toBase58());
+            _registerRef(state.publicKey.toBase58());
             return;
         }
-        // No saved wallet — show picker modal
         const r = await _showModal();
         localStorage.setItem('fd_wallet', r.name);
         state.wallet = r.provider;
         const resp2 = await r.provider.connect();
         state.publicKey = resp2.publicKey;
         localStorage.setItem('fd_pubkey', state.publicKey.toBase58());
+        _registerRef(state.publicKey.toBase58());
     }
 
     function getPublicKey() { return state.publicKey ? state.publicKey.toBase58() : null; }
     function isConnected()  { return !!state.publicKey; }
+
+    // Store ref param from URL on every page load
+    const _urlRef = new URLSearchParams(location.search).get('ref');
+    if (_urlRef) localStorage.setItem('fd_ref', _urlRef);
+
+    function _registerRef(wallet) {
+        const ref = localStorage.getItem('fd_ref');
+        if (!ref || !wallet || ref === wallet) return;
+        fetch('/api/referral/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ wallet, ref })
+        }).catch(() => {});
+    }
 
     async function getSolBalance() {
         if (!state.publicKey) return 0;

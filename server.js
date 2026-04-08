@@ -68,9 +68,10 @@ const { balances, bjSessions, referrals, referrers } = loadState();
 
 function trackReferral(wallet, referrer) {
     if (!wallet || !referrer || wallet === referrer) return;
-    if (referrals.has(wallet)) return;
-    referrals.set(wallet, { referrer, wagered: 0, earned: 0 });
+    // Always ensure referrer entry exists
     if (!referrers.has(referrer)) referrers.set(referrer, { count: 0, wagered: 0, earned: 0, unclaimed: 0 });
+    if (referrals.has(wallet)) return; // already registered, don't change referrer
+    referrals.set(wallet, { referrer, wagered: 0, earned: 0 });
     referrers.get(referrer).count++;
     saveState();
 }

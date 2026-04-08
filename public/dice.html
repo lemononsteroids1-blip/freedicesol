@@ -316,8 +316,6 @@
                 updateBalance();
             }
             setInterval(async () => { if (FreeDiceSolana.isConnected()) { balance = await FreeDiceSolana.getSolBalance(); updateBalance(); } }, 6000);
-            const ref = new URLSearchParams(location.search).get('ref') || localStorage.getItem('fd_ref');
-            if (ref && wallet) fetch('/api/referral/register', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ wallet, ref }) });
             updateStats();
             initSlider();
         });
